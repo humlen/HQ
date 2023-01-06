@@ -1,7 +1,9 @@
 @author: eirik
 
 
-# Header
-## Subheader
+# Readme
 
-This is a readme, it's not exhaustive yet. This will list out different scripts and how to best use them
+Inexhaustive introduction to repo.
+
+### PowerBI Resources
+resources used for PowerBI Reports related to any research
