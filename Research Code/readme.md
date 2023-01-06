@@ -17,4 +17,4 @@ Long calls (but will be modified to add more features in the future)
 ## Experiments
 **x001 - Monte Carlo Revenue Simulation**: Attempt at using Monte Carlo method to simulate future growth\
 **x002 - Black-Scholes Options Premiums**: Attempt at estimating future options pricing\
-<span style="color:blue"> **x003 - Ramp Dilemma**</span>: trivial attempt at forecasting
+**x003 - Ramp Dilemma**: trivial attempt at forecasting
