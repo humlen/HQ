@@ -11,11 +11,8 @@ Attempt to calculate options premiums based on greeks
 import yfinance as yf
 import pandas as pd
 import numpy as np
-from math import log, sqrt, pi, exp
+from math import log, sqrt, exp
 from scipy.stats import norm
-from datetime import datetime, date
-from pandas import DataFrame
-
 
 # Test selling OTM covered calls against highly liquid ETFs, to squeeze extra alpha out of what is meant to 
 # be a less volatile "stable" addition to your portfolio

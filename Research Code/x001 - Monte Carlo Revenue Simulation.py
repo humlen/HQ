@@ -11,7 +11,6 @@ This script aims to create a monte carlo evaluation of future revenues given a r
 #%% Import Libraries
 
 # Import Libraries
-import pandas as pd
 import numpy as np
 import yfinance as yf
 import seaborn as sns
