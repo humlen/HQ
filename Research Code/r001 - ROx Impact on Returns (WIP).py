@@ -10,6 +10,7 @@ have on future performances of stocks.
 #%% Package Installs
 import pandas as pd
 import yfinance as yf
+from datetime import timedelta
 
 # Only enable if you know what you're doing
 import warnings 
@@ -22,6 +23,7 @@ warnings.filterwarnings("ignore")
 tickerlist = ['msft','aapl','goog']
 companylist = ['microsoft','apple','alphabet']
 list_roa = []
+list_prices = []
 mt =  "https://www.macrotrends.net/stocks/charts/"
 
 
@@ -32,13 +34,17 @@ for i in range(len(tickerlist)):
   ticker = tickerlist[i]
   stock_data = yf.Ticker(ticker)
   stock_hist = stock_data.history(period="max")
-  df_prices = stock_hist[["Close"]]
-  df_prices["Ticker"] = ticker
-  df_prices.reset_index(inplace=True)
-  df_prices.columns= ['Date','Close','Ticker']
+  df_price = stock_hist[["Close"]]
+  df_price["Ticker"] = ticker
+  df_price.reset_index(inplace=True)
+  df_price.columns= ['Date','Close','Ticker']
+  
+  # Append to list of dataframes
+  list_prices.append(df_price)
+  
+df_prices = pd.concat(list_prices, axis = 0) 
 
-
-#%% ROE Calculation
+#%% ROA Calculation
 
 # Loop through list elements to collect data
 for i in range(len(tickerlist)):
@@ -59,4 +65,15 @@ for i in range(len(tickerlist)):
 
 # Concatenate dataframes
 df_roa = pd.concat(list_roa, axis = 0)
+df_roa['Date'] = df_roa['Date'].astype('datetime64')
 
+#%% Combine Price & ROA Data
+
+df_roa.info()
+df_prices.info()
+
+print(df_prices.tail())
+
+#%%
+df_base = pd.merge(df_roa, df_prices, how='left', left_on=['Date','Ticker'], right_on=['Date','Ticker']) # 114/156 test data joined (73%)
+df_base.info()
