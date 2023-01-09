@@ -34,8 +34,6 @@ list_roa = []
 list_prices = []
 mt =  "https://www.macrotrends.net/stocks/charts/"
 
-print(end_date)
-
 #%% YFinance Equity Price Collection
 # Loop through elements in 
 for i in range(len(tickerlist)):
@@ -145,49 +143,18 @@ df_base.info()
 
 # Add thresh parameter
 plt.figure(dpi=1200)
-sns.kdeplot(x=df_base.ROA, y=df_base.Delta_6m, cmap="Blues", shade=True, thresh=0)
+sns.kdeplot(x=df_base.ROA, y=df_base.Delta_1y, cmap="Blues", shade=True, thresh=0)
 plt.show()
 
 # Add line with confidence interval
 plt.figure(dpi=1200)
-graph = sns.lineplot(data=df_base, x="ROA", y="Delta_6m", ci=95)
+graph = sns.lineplot(data=df_base, x="ROA", y="Delta_1y", ci=95)
 graph.axhline(y=0, color = 'black', linestyle = '--', lw = 1)
 #graph.axhline(y=0.08, color = 'green', linestyle = '--', lw = 1)
 
 # LOL
 plt.figure(dpi=1200)
-graph = sns.lineplot(data=df_base, x="ROA", y="Return_6m", ci=95)
+graph = sns.lineplot(data=df_base, x="ROA", y="Return_1y", ci=95)
 graph.axhline(y=0, color = 'black', linestyle = '--', lw = 1)
 graph.axhline(y=0.08, color = 'green', linestyle = '--', lw = 1)
-
-
-"""
-Works, but IDK how to tweak
-y_mean = df_base.groupby('ROA').mean()['Delta_6m']
-x = y_mean.index
-
-# Compute upper and lower bounds using chosen uncertainty measure: here
-# it is a fraction of the standard deviation of measurements at each
-# time point based on the unbiased sample variance
-y_std = df_base.groupby('ROA').std()['Delta_6m']
-error = 0.5*y_std
-lower = y_mean - error
-upper = y_mean + error
-
-# Draw plot with error band and extra formatting to match seaborn style
-fig, ax = plt.subplots(figsize=(9,5))
-#ax.figure(dpi=1200)
-ax.plot(x, y_mean, label='Delta_6m mean')
-ax.plot(x, lower, color='tab:blue', alpha=0.1)
-ax.plot(x, upper, color='tab:blue', alpha=0.1)
-ax.fill_between(x, lower, upper, alpha=0.2)
-ax.set_xlabel('ROA')
-ax.set_ylabel('Delta 6M')
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-ax.hlines(y=0)
-#ax.axhline(y=0, color = 'black', linestype = '-')
-#ax.axhline(y=0.08, color = 'green', linestype = '--')
-plt.show()
-"""
 
