@@ -25,10 +25,11 @@ warnings.filterwarnings("ignore")
 
 #%% Preparations
 
-# Needs to be fixed: read from CSV
-tickerlist = ['msft','aapl','goog','amzn','meta','nflx']
-companylist = ['microsoft','apple','alphabet','amazon','meta-platforms','netflix']
-start_date = '1993-09-25'
+df_tickers = pd.read_csv("../Research Resources/Tickers.csv") #1036 Entries
+df_tickers = df_tickers.drop_duplicates(subset=["ticker"])
+tickerlist = df_tickers["ticker"].to_list()
+companylist = df_tickers["comp_name"]
+start_date = '2010-01-01'
 end_date = datetime.now()+timedelta(days=-730)
 list_roa = []
 list_prices = []
@@ -49,7 +50,6 @@ for i in range(len(tickerlist)):
   df_dates = pd.DataFrame({'Date':pd.date_range(start=start_date, end=datetime.today())})
   df_price = pd.merge(df_dates, df_price, how = 'left', left_on='Date', right_on = 'Date')
   df_price = df_price.ffill(axis=0)
-#  DF= pd.merge(df_roa, df_prices, how='left', left_on=['Date','Ticker'], right_on=['Date','Ticker']) # 93/135 test data joined (68.9%)
 
   # Append to list of dataframes
   list_prices.append(df_price)
@@ -137,24 +137,72 @@ df_base["ROA"] = df_base["ROA"]/100
 df_base["ROA"] = df_base["ROA"].round(2)
 
 df_base.info()
+df_base.dropna()
+df_base.info()
  
-#%% Plot
-# libraries & dataset
 
-# Add thresh parameter
+#%% Normalize Dataset
+
+# Set target
+variable = "ROA"
+target = "Delta_6m"
+comparison = "Index_6m"
+
+
+
+# Remove Outlier Dates
+df_base_filtered = df_base[(df_base["Date"] >= start_date)]
+
+# Remove Outlier ROAs
+roa_low = df_base_filtered[variable].quantile(0.01)
+roa_high  = df_base_filtered[variable].quantile(0.99)
+df_base_filtered = df_base_filtered[(df_base_filtered[variable] < roa_high) & (df_base_filtered[variable] > roa_low)]
+
+# Remove Outlier Returns
+ret_low = df_base_filtered[target].quantile(0.01)
+ret_high  = df_base_filtered[target].quantile(0.99)
+df_base_filtered = df_base_filtered[(df_base_filtered[target] < ret_high) & (df_base_filtered[target] > ret_low)]
+
+#%% Plots
+
+
+# Density Plot of ROA vs Delta 1Y
 plt.figure(dpi=1200)
-sns.kdeplot(x=df_base.ROA, y=df_base.Delta_1y, cmap="Blues", shade=True, thresh=0)
+sns.kdeplot(data = df_base_filtered, x=variable, y=target, cmap="Blues", shade=True)
+plt.title("ROA and Performance Distribution")
+#graph.set_ylabel("Return vs S&P500, 1Y later")
+plt.axhline(y=0, color = 'black', linestyle = '--', lw = .3) # Net Zero
+plt.axvline(x=0, color = 'black', linestyle = '--', lw = .3) # Net Zero
 plt.show()
 
-# Add line with confidence interval
+# Line Chart with average Performance per Year
 plt.figure(dpi=1200)
-graph = sns.lineplot(data=df_base, x="ROA", y="Delta_1y", ci=95)
-graph.axhline(y=0, color = 'black', linestyle = '--', lw = 1)
-#graph.axhline(y=0.08, color = 'green', linestyle = '--', lw = 1)
+graph = sns.lineplot(data=df_base, x="Date", y=target, ci =95)
+graph.axhline(y=0, color = 'black', linestyle = '--', lw = 1) # Net Zero
+graph.set_title("Relative Return vs Market avg.")
+graph.set_ylabel("% Return, 1Y Later")
+graph.set(xlabel=None)
+plt.show()
 
-# LOL
-plt.figure(dpi=1200)
-graph = sns.lineplot(data=df_base, x="ROA", y="Return_1y", ci=95)
-graph.axhline(y=0, color = 'black', linestyle = '--', lw = 1)
-graph.axhline(y=0.08, color = 'green', linestyle = '--', lw = 1)
+#%% WIP
+
+# Line Chart with ROA (/w Confidence Interval) and Relative Market Outperformance
+#plt.figure(dpi=1200)
+sns.lineplot(data=df_base_filtered, x="ROA", y="Delta_1y", ci=95)
+plt.axhline(y=0, color = 'black', linestyle = '--', lw = 1) # Net Zero
+#mean_y = df_base_filtered["Delta_1y"].mean()
+# plt.axhline(y=mean_y, color = 'orange', linestyle = '--', lw = 1) # Dataset Mean
+plt.title("ROA and Performance Distribution")
+plt.ylabel("Return vs S&P500, 1Y later")
+
+
+
+#%%
+
+sns.jointplot(x=df_base_filtered.ROA, y=df_base_filtered.Return_6m, cmap="Blues", shade=True, kind='kde')
+plt.axhline(y=0)
+
+
+
+
 
