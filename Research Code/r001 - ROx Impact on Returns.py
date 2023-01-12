@@ -260,9 +260,12 @@ corr, _ = pearsonr(df_base_filtered["ROI"],df_base_filtered["Return_2y"])
 print("Pearsons Correlation (2y return): %.3f" % corr)
 
 
-#%%
-sectorlist = df_base_filtered.sector.unique().to_list()
+#%% Correlation Ranker
+df_sectors = df_base_filtered.sector.unique()
+sectorlist = df_sectors.tolist()
     
+correlation_rank = []
+correlation_rank_columns = ["Sector","Metric","Score"]
 for i in tqdm(range(len(sectorlist))):
     sector = sectorlist[i]
     corr_r6m, _ = pearsonr(df_base_filtered["ROI"],df_base_filtered["Return_6m"])
@@ -271,6 +274,17 @@ for i in tqdm(range(len(sectorlist))):
     corr_d6m, _ = pearsonr(df_base_filtered["ROI"],df_base_filtered["Delta_6m"])
     corr_d1y, _ = pearsonr(df_base_filtered["ROI"],df_base_filtered["Delta_1y"])
     corr_d2y, _ = pearsonr(df_base_filtered["ROI"],df_base_filtered["Delta_2y"])
+    correlation_rank.append([sector, 'corr_r6m', corr_r6m])
+    correlation_rank.append([sector, 'corr_r1y', corr_r1y])
+    correlation_rank.append([sector, 'corr_r2y', corr_r2y])
+    correlation_rank.append([sector, 'corr_d6m', corr_d6m])
+    correlation_rank.append([sector, 'corr_d1y', corr_d1y])
+    correlation_rank.append([sector, 'corr_d2y', corr_d2y])
 
 
-df_base.to_csv(r'C:\Users\eirik\OneDrive\Desktop\base.csv', index=False)
+df_correlation_rank = pd.DataFrame(correlation_rank, columns = correlation_rank_columns)
+df_correlation_rank = df_correlation_rank.sort_values(by=["Score"], ascending = False)
+print(df_correlation_rank)
+
+
+#df_base.to_csv(r'C:\Users\eirik\OneDrive\Desktop\base.csv', index=False)
