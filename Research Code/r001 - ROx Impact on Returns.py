@@ -30,7 +30,7 @@ warnings.filterwarnings("ignore")
 
 #%% Preparations
 
-df_tickers = pd.read_csv("../Research Resources/Tickers.csv") #1036 Entries
+df_tickers = pd.read_csv("Research Resources/Tickers.csv") #1036 Entries
 df_tickers = df_tickers.drop_duplicates(subset=["comp_name"])
 start_date = '2010-01-01'
 end_date = datetime.now()+timedelta(days=-730)

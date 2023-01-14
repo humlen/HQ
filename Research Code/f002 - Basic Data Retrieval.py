@@ -12,19 +12,22 @@ import pandas as pd
 import yfinance as yf
 import numpy as np
 import warnings
+from bs4 import BeautifulSoup as soup
+from urllib.request import Request, urlopen
 
 warnings.filterwarnings("ignore")
 
 
 #%% Inputs
 
-ticker = "MSFT"
+ticker = "tsla" 
 
 
 #%% Preparations
+ticker = ticker.upper()
 yf_ticker = yf.Ticker(ticker)
 start_date = "2017-01-01"
-master_tickers = pd.read_csv("C:/Users/eirik/OneDrive/Documents/Cloudkit/Research Code/Research Resources/Tickers.csv") 
+master_tickers = pd.read_csv("Research Resources/Tickers.csv") 
 meta_stock = master_tickers.loc[master_tickers['ticker'] == ticker]
 company = meta_stock["comp_name"].values
 company = np.array2string(company).replace("[","").replace("]","").replace("'","")
@@ -32,6 +35,7 @@ company = np.array2string(company).replace("[","").replace("]","").replace("'","
 
 # Resources
 mt =          "https://www.macrotrends.net/stocks/charts/"
+fv =          "https://finviz.com/quote.ashx?t={ticker}&p=d".format(ticker=ticker)
 revenue =     "{base}{ticker}/{company}/revenue".format(ticker=ticker,company=company,base=mt)
 netinc =      "{base}{ticker}/{company}/net-income".format(ticker=ticker,company=company,base=mt)
 eps =         "{base}{ticker}/{company}/eps-earnings-per-share-diluted".format(ticker=ticker,company=company,base=mt) 
@@ -356,72 +360,109 @@ Q_Debt["Long Term Debt 5Y CAGR"]  = ((Q_Debt['Long Term Debt'].pct_change(20)+1)
 Q_Debt["Long Term Debt"] = -1*Q_Debt["Long Term Debt"]
 Q_Debt = Q_Debt[Q_Debt["Date"]>start_date] # Snips data to target time frame
 
+#%% Price Data
 
-# Price Data
 stock = yf.Ticker(ticker)
 stock_all = stock.history(period="max")
-D_HistoricalPrice = stock_all[["Close"]]
+df_histprice = stock_all[["Close"]]
 
 # SMA
-D_HistoricalPrice["50d SMA"] = D_HistoricalPrice["Close"].rolling(window = 50).mean()
-D_HistoricalPrice["250d SMA"] = D_HistoricalPrice["Close"].rolling(window = 250).mean()
-D_HistoricalPrice = D_HistoricalPrice[D_HistoricalPrice.index>=start_date]
+df_histprice["50d SMA"] = df_histprice["Close"].rolling(window = 50).mean()
+df_histprice["250d SMA"] = df_histprice["Close"].rolling(window = 250).mean()
+df_histprice["Date"] = df_histprice.index
+df_histprice = df_histprice[df_histprice.index>=start_date]
+df_histprice_cols = df_histprice.columns.tolist()
+df_histprice_cols = df_histprice_cols[-1:] + df_histprice_cols[:-1]
+df_histprice = df_histprice[df_histprice_cols]
+df_histprice = df_histprice.reset_index(drop=True)
+#df_histprice['Date'] = pd.to_datetime(df_histprice['Date']).dt.date
+#df_histprice['Date'] = pd.to_datetime(df_histprice['Date']).dt.date # For some reason we need to repeat this line
 
 
-D_StockInfo = yf_ticker.info
-D_StockInfo.items()
+df_histprice.info()
+#%%
 
-Info = []
-Failed = []
-Keys = ['sector', 'industry', 'country', 'longBusinessSummary','currentPrice','targetMeanPrice',
-        'heldPercentInsiders','forwardPE','payoutRatio','trailingPE','dividendYield','numberOfAnalystOpinions',
-        'totalCash','totalDebt','debtToEquity','enterpriseToRevenue','enterpriseToEbitda','52WeekChange',
-        'heldPercentInstitutions','marketCap','averageVolume10days','longName']
-for Key in Keys:
-    try:
-      Info.append(D_StockInfo[Key])
-    except:
-      Info.append(0)
-      pass
+pd.set_option('display.max_colwidth', 25)
+
+# Input
+print ('Getting data for ' + ticker + '...\n')
+
+# Set up scraper
+req = Request(fv, headers={'User-Agent': 'Mozilla/5.0'})
+webpage = urlopen(req).read()
+html = soup(webpage, "html.parser")
+
+try:
+    # Find fundamentals table
+    fundamentals = pd.read_html(str(html), attrs = {'class': 'snapshot-table2'})[0]
+    
+    # Clean up fundamentals dataframe
+    fundamentals.columns = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11']
+    colOne = []
+    colLength = len(fundamentals)
+    for k in np.arange(0, colLength, 2):
+        colOne.append(fundamentals[f'{k}'])
+    attrs = pd.concat(colOne, ignore_index=True)
+    
+    colTwo = []
+    colLength = len(fundamentals)
+    for k in np.arange(1, colLength, 2):
+        colTwo.append(fundamentals[f'{k}'])
+    vals = pd.concat(colTwo, ignore_index=True)
+    
+    fundamentals = pd.DataFrame()
+    fundamentals['Attributes'] = attrs
+    fundamentals['Values'] = vals
+    fundamentals = fundamentals.set_index('Attributes')
     
 
+except Exception as e:
+    e
 
+df_fundamentals = fundamentals.T
+df_fundamentals['Dividend'] = np.where(df_fundamentals['Dividend'] == "-", 0, df_fundamentals["Dividend"]) # Replace Errors with 0
+df_fundamentals['Dividend %'] = np.where(df_fundamentals['Dividend %'] == "-", 0, df_fundamentals["Dividend %"]) # Replace Errors with 0
+df_fundamentals["ticker"] = ticker
+df_fundamentals["company"] = company
 
-D_Info = pd.DataFrame({'Category': Keys, 'Value': Info})
-
-D_Info = D_Info.set_index('Category')
-D_Info = D_Info.T
-
-
-#%% Merge & Export
+#%% Merge 
 
 # Merge Quarterly Data
-Quarterly_Data = Q_Revenue.merge(Q_NetInc, left_on='Date', right_on='Date')
-Quarterly_Data = Quarterly_Data.merge(Q_Eps, left_on = 'Date', right_on = 'Date')
-Quarterly_Data = Quarterly_Data.merge(Q_Fcf, left_on = 'Date', right_on = 'Date')
-Quarterly_Data = Quarterly_Data.merge(Q_Shares, left_on = 'Date', right_on = 'Date')
-Quarterly_Data = Quarterly_Data.merge(Q_Roa, left_on = 'Date', right_on = 'Date')
-Quarterly_Data = Quarterly_Data.merge(Q_Roe, left_on = 'Date', right_on = 'Date')
+df_data = Q_Revenue.merge(Q_NetInc, left_on='Date', right_on='Date')
+df_data = df_data.merge(Q_Eps, left_on = 'Date', right_on = 'Date')
+df_data = df_data.merge(Q_Fcf, left_on = 'Date', right_on = 'Date')
+df_data = df_data.merge(Q_Shares, left_on = 'Date', right_on = 'Date')
+df_data = df_data.merge(Q_Roa, left_on = 'Date', right_on = 'Date')
+df_data = df_data.merge(Q_Roe, left_on = 'Date', right_on = 'Date')
 
 if len(Q_Roi) > 0:
-  Quarterly_Data = Quarterly_Data.merge(Q_Roi, left_on = 'Date', right_on = 'Date')
+  df_data = df_data.merge(Q_Roi, left_on = 'Date', right_on = 'Date')
 else:
-  Quarterly_Data["ROI"] = ""
-  Quarterly_Data["ROI QoQ"] = ""
-  Quarterly_Data["ROI YoY"]  = ""
-  Quarterly_Data["ROI 5Y CAGR"] = ""
+  df_data["ROI"] = ""
+  df_data["ROI QoQ"] = ""
+  df_data["ROI YoY"]  = ""
+  df_data["ROI 5Y CAGR"] = ""
   
-Quarterly_Data = Quarterly_Data.merge(Q_GrossM, left_on = 'Date', right_on = 'Date')
-Quarterly_Data = Quarterly_Data.merge(Q_OperatingM, left_on = 'Date', right_on = 'Date')
-Quarterly_Data = Quarterly_Data.merge(Q_NetM, left_on = 'Date', right_on = 'Date')
-Quarterly_Data = Quarterly_Data.merge(Q_ShEquity, left_on = 'Date', right_on = 'Date')
-Quarterly_Data = Quarterly_Data.merge(Q_OpEx, left_on = 'Date', right_on = 'Date')
-Quarterly_Data = Quarterly_Data.merge(Q_RnD, left_on = 'Date', right_on = 'Date')
-Quarterly_Data = Quarterly_Data.merge(Q_Cash, left_on = 'Date', right_on = 'Date')
-Quarterly_Data = Quarterly_Data.merge(Q_Debt, left_on = 'Date', right_on = 'Date')
+df_data = df_data.merge(Q_GrossM, left_on = 'Date', right_on = 'Date')
+df_data = df_data.merge(Q_OperatingM, left_on = 'Date', right_on = 'Date')
+df_data = df_data.merge(Q_NetM, left_on = 'Date', right_on = 'Date')
+df_data = df_data.merge(Q_ShEquity, left_on = 'Date', right_on = 'Date')
+df_data = df_data.merge(Q_OpEx, left_on = 'Date', right_on = 'Date')
+df_data = df_data.merge(Q_RnD, left_on = 'Date', right_on = 'Date')
+df_data = df_data.merge(Q_Cash, left_on = 'Date', right_on = 'Date')
+df_data = df_data.merge(Q_Debt, left_on = 'Date', right_on = 'Date')
+
+df_data = df_data.sort_values(by=['Date'], ascending = False)
+df_data = df_data.reset_index()
+df_data = df_data.drop("index", axis=1)
+
+#%%
+# Remove timezones
+df_histprice['Date'] = df_histprice['Date'].dt.tz_localize(None)
+
 
 # To Excel
-with pd.ExcelWriter('Research Resources/BDR.xlsx') as writer:  
-    Quarterly_Data.to_excel(writer, sheet_name='Quarterly Data')
-    D_HistoricalPrice.to_excel(writer, sheet_name='Price Data')
-    D_Info.to_excel(writer, sheet_name='Info') 
+with pd.ExcelWriter('C:/Users/eirik/OneDrive/Documents/Cloudkit/PowerBI Resources/BDR.xlsx') as writer:  
+    df_data.to_excel(writer, sheet_name='Quarterly Data')
+    df_histprice.to_excel(writer, sheet_name='Price Data')
+    df_fundamentals.to_excel(writer, sheet_name='Info') 
