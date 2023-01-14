@@ -20,7 +20,7 @@ warnings.filterwarnings("ignore")
 
 #%% Inputs
 
-ticker = "tsla" 
+ticker = "khc" 
 
 
 #%% Preparations
@@ -31,7 +31,8 @@ master_tickers = pd.read_csv("Research Resources/Tickers.csv")
 meta_stock = master_tickers.loc[master_tickers['ticker'] == ticker]
 company = meta_stock["comp_name"].values
 company = np.array2string(company).replace("[","").replace("]","").replace("'","")
-
+company_beaut = meta_stock["comp_name_2"].values
+company_beaut = np.array2string(company_beaut).replace("[","").replace("]","").replace("'","")
 
 # Resources
 mt =          "https://www.macrotrends.net/stocks/charts/"
@@ -424,6 +425,7 @@ df_fundamentals['Dividend'] = np.where(df_fundamentals['Dividend'] == "-", 0, df
 df_fundamentals['Dividend %'] = np.where(df_fundamentals['Dividend %'] == "-", 0, df_fundamentals["Dividend %"]) # Replace Errors with 0
 df_fundamentals["ticker"] = ticker
 df_fundamentals["company"] = company
+df_fundamentals["company_b"] = company_beaut
 
 #%% Merge 
 
