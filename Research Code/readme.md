@@ -1,20 +1,67 @@
 # Research Code
 
 This will be a repo of all code used for research purposes. All documents will have names corresponding with their purpose.
-
 **Prefixes**\
 f: Feature for implementation / future use\
 r: Research code\
 x: Experimental code
 
-## Research
-**r001 - ROx Impact on Returns**: Attempting to analyze how ROA/E/I/IC have impacted future returns in the past
+### Research 
+<details>
+  <summary>r001 - ROx Impact</summary>
+### Summary 
+Attempting to analyze how ROA/E/I/IC have impacted future returns in the past
+#### Changelog
+- v 1.00
+    - official release of working version of the BDR 
+</details>
 
-## Features
-**f001 - Options Return Chart**: Charting Returns & Performance of Buy & Hold vs. Options. Currently only works for 
+
+
+<details>
+  <summary>r002 - Linearity Rankings</summary>
+### Summary 
+Attempting to analyze how ROA/E/I/IC have impacted future returns in the past
+#### Changelog
+</details>
+
+
+
+
+
+### Features
+<details>
+  <summary>**f001 - Options Return Chart**</summary>
+### Summary 
+Charting Returns & Performance of Buy & Hold vs. Options. Currently only works for 
 Long calls (but will be modified to add more features in the future)
+#### Changelog
+- v 1.00
+    - official release of working version of the Options Return Chart
+</details>
 
-## Experiments
-**x001 - Monte Carlo Revenue Simulation**: Attempt at using Monte Carlo method to simulate future growth\
-**x002 - Black-Scholes Options Premiums**: Attempt at estimating future options pricing\
-**x003 - Ramp Dilemma**: trivial attempt at forecasting
+
+
+
+### Experiments
+
+<details>
+  <summary>**x001 - Monte Carlo Revenue Simulation**</summary>
+### Summary 
+Attempt at using Monte Carlo method to simulate future growth
+#### Changelog
+</details>
+
+<details>
+  <summary>**x002 - Black-Scholes Options Premiums**</summary>
+### Summary 
+Attempt at estimating future options pricing
+#### Changelog
+</details>
+
+<details>
+  <summary>**x003 - Ramp Dilemma**</summary>
+### Summary 
+trivial attempt at forecasting
+#### Changelog
+</details>
