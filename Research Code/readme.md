@@ -23,9 +23,12 @@ Attempting to analyze how ROA/E/I/IC have impacted future returns in the past
 
 <details>
   <summary>r002 - Linearity Rankings</summary>
+  
 ### Summary 
 Attempting to analyze how ROA/E/I/IC have impacted future returns in the past
+
 #### Changelog
+
 </details>
 
 
@@ -34,13 +37,16 @@ Attempting to analyze how ROA/E/I/IC have impacted future returns in the past
 
 ### Features
 <details>
-  <summary>**f001 - Options Return Chart**</summary>
+  <summary> **f001 - Options Return Chart** </summary>
+  
 ### Summary 
 Charting Returns & Performance of Buy & Hold vs. Options. Currently only works for 
 Long calls (but will be modified to add more features in the future)
+
 #### Changelog
 - v 1.00
     - official release of working version of the Options Return Chart
+    
 </details>
 
 
@@ -50,21 +56,27 @@ Long calls (but will be modified to add more features in the future)
 
 <details>
   <summary>**x001 - Monte Carlo Revenue Simulation**</summary>
+  
 ### Summary 
 Attempt at using Monte Carlo method to simulate future growth
 #### Changelog
+
 </details>
 
 <details>
   <summary>**x002 - Black-Scholes Options Premiums**</summary>
+  
 ### Summary 
 Attempt at estimating future options pricing
 #### Changelog
+
 </details>
 
 <details>
   <summary>**x003 - Ramp Dilemma**</summary>
+  
 ### Summary 
 trivial attempt at forecasting
 #### Changelog
+
 </details>
