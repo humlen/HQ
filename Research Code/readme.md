@@ -9,11 +9,14 @@ x: Experimental code
 ### Research 
 <details>
   <summary>r001 - ROx Impact</summary>
+  
 ### Summary 
 Attempting to analyze how ROA/E/I/IC have impacted future returns in the past
+
 #### Changelog
 - v 1.00
     - official release of working version of the BDR 
+    
 </details>
 
 
