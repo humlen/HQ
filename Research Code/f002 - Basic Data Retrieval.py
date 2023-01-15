@@ -20,7 +20,7 @@ warnings.filterwarnings("ignore")
 
 #%% Inputs
 
-ticker = "goog" 
+ticker = "ramp" 
 
 
 #%% Preparations
@@ -425,13 +425,7 @@ df_fundamentals = fundamentals.T
 df_fundamentals["ticker"] = ticker
 df_fundamentals["company"] = company
 df_fundamentals["company_b"] = company_beaut
-"""
-Test removal of this
-df_fundamentals['Dividend'] = np.where(df_fundamentals['Dividend'] == "-", 0, df_fundamentals["Dividend"]) # Replace Errors with 0
-df_fundamentals['Dividend %'] = np.where(df_fundamentals['Dividend %'] == "-", 0, df_fundamentals["Dividend %"]) # Replace Errors with 0
-df_fundamentals['Inst Own'] = np.where(df_fundamentals['Inst Own'] == "-", 0, df_fundamentals["Inst Own"]) # Replace Errors with 0
-df_fundamentals['Inst Trans'] = np.where(df_fundamentals['Inst Trans'] == "-", 0, df_fundamentals["Inst Trans"]) # Replace Errors with 0
-"""
+
 for (columnName, columnData) in df_fundamentals.iteritems():
     df_fundamentals[columnName] = np.where(df_fundamentals[columnName] == "-", 0, df_fundamentals[columnName])
 

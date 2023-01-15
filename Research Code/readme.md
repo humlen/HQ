@@ -25,7 +25,7 @@ Attempting to analyze how ROA/E/I/IC have impacted future returns in the past
   <summary>r002 - Linearity Rankings</summary>
   
 ### Summary 
-Attempting to analyze how ROA/E/I/IC have impacted future returns in the past
+Attempting to analyze how ROA/E/I/IC have impacted future returns in the past. Reseach used as foundation found here: https://www.alpharithms.com/correlation-analysis-414321/ , https://www.scribbr.com/statistics/correlation-coefficient/
 
 #### Changelog
 
@@ -37,7 +37,7 @@ Attempting to analyze how ROA/E/I/IC have impacted future returns in the past
 
 ### Features
 <details>
-  <summary> **f001 - Options Return Chart** </summary>
+  <summary> f001 - Options Return Chart </summary>
   
 ### Summary 
 Charting Returns & Performance of Buy & Hold vs. Options. Currently only works for 
@@ -55,7 +55,7 @@ Long calls (but will be modified to add more features in the future)
 ### Experiments
 
 <details>
-  <summary>**x001 - Monte Carlo Revenue Simulation**</summary>
+  <summary>x001 - Monte Carlo Revenue Simulation</summary>
   
 ### Summary 
 Attempt at using Monte Carlo method to simulate future growth
@@ -64,7 +64,7 @@ Attempt at using Monte Carlo method to simulate future growth
 </details>
 
 <details>
-  <summary>**x002 - Black-Scholes Options Premiums**</summary>
+  <summary>x002 - Black-Scholes Options Premiums</summary>
   
 ### Summary 
 Attempt at estimating future options pricing
@@ -73,7 +73,7 @@ Attempt at estimating future options pricing
 </details>
 
 <details>
-  <summary>**x003 - Ramp Dilemma**</summary>
+  <summary>x003 - Ramp Dilemma</summary>
   
 ### Summary 
 trivial attempt at forecasting
