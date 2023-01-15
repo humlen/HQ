@@ -124,8 +124,7 @@ dataset = dataset[dataset["Pearson R"]>0]
 dataset["Score"] = dataset["Pearson R"]**2 * dataset["Number of Quarters"]**0.5
 dataset = dataset.sort_values(by=("Score"), ascending = False)
 
-print(dataset.head(20))
-
+dataset = dataset.head(50)
 
 #%% Plots
 
@@ -167,5 +166,7 @@ def label_point(x, y, val, ax):
         ax.text(point['x']+.5, point['y']+.02, str(point['val']))
 
 label_point(dataset["Number of Quarters"], dataset["Pearson R"], dataset["Ticker"], plt.gca())  
+
+print(dataset)
 
     

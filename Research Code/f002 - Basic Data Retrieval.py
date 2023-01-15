@@ -20,7 +20,7 @@ warnings.filterwarnings("ignore")
 
 #%% Inputs
 
-ticker = "ramp" 
+ticker = "xpel" 
 
 
 #%% Preparations
