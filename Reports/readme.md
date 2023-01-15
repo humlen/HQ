@@ -6,7 +6,10 @@ we can still get a good glance on short notice that will give a good idea if the
 
 #### Changelogs
 
-2023-01-15 \n
-- a
-    - b
-        - c 
+<details>
+  <summary>BDR Dashboard</summary>
+  
+- v 1.00
+    - official release of working version of the BDR
+  
+</details>
