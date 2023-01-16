@@ -105,7 +105,13 @@ for i in tqdm(range(len(tickerlist))):
 df_base = pd.concat(linearity_list, axis = 0)
 
  
+
+#%% Export Dataset
+df_base.to_csv('C:/Users/eirik/OneDrive/Documents/Cloudkit/Database/master__linearity.csv', index = False)
+
 #%%
+
+
 
 """
                   ═════════•°• ⚠ •°•═════════    
@@ -116,8 +122,6 @@ df_base = pd.concat(linearity_list, axis = 0)
 """
 
 
-#%% Export Dataset
-df_base.to_csv('C:/Users/eirik/OneDrive/Documents/Cloudkit/Database/master__linearity.csv', index = False)
 
 #%% Scored Dataset
 dataset = df_base.reset_index(drop=True)
