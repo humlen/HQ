@@ -41,8 +41,8 @@ df_tickers = df_tickers[(df_tickers['market_val'] >= 100)]
 # 2594 Left
 
 
-tickerlist = df_tickers["ticker"].to_list()[:100]
-companylist = df_tickers["comp_name"].to_list()[:100]
+tickerlist = df_tickers["ticker"].to_list()
+companylist = df_tickers["comp_name"].to_list()
 
 
 # FOR TESTING PURPOSES ONLY
@@ -95,8 +95,8 @@ for i in tqdm(range(len(tickerlist))):
         linearity_list.append(df_linearity)
     
         # Naptime (Only for large data collections [100+ records])
-        #sleeptime = random.randint(0,10)
-        #time.sleep(sleeptime)
+        sleeptime = random.randint(0,10)
+        time.sleep(sleeptime)
     
     except:
         pass
@@ -115,6 +115,9 @@ df_base = pd.concat(linearity_list, axis = 0)
                  ═════════•°• ⚠ •°•═════════                
 """
 
+
+#%% Export Dataset
+df_base.to_csv('C:/Users/eirik/OneDrive/Documents/Cloudkit/Database/master__linearity.csv', index = False)
 
 #%% Scored Dataset
 dataset = df_base.reset_index(drop=True)
