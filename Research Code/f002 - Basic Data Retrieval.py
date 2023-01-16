@@ -19,15 +19,17 @@ warnings.filterwarnings("ignore")
 
 
 #%% Inputs
+ticker = "intc" 
 
-ticker = "wina" 
 
+# Config
+version = "2.00"
 
 #%% Preparations
 ticker = ticker.upper()
 yf_ticker = yf.Ticker(ticker)
-start_date = "2017-01-01"
-master_tickers = pd.read_csv("Research Resources/Tickers.csv") 
+start_date = "2013-01-01"
+master_tickers = pd.read_csv("C:/Users/eirik/OneDrive/Documents/Cloudkit/Database/master__tickers.csv") 
 meta_stock = master_tickers.loc[master_tickers['ticker'] == ticker]
 company = meta_stock["comp_name"].values
 company = np.array2string(company).replace("[","").replace("]","").replace("'","")
@@ -425,6 +427,7 @@ df_fundamentals = fundamentals.T
 df_fundamentals["ticker"] = ticker
 df_fundamentals["company"] = company
 df_fundamentals["company_b"] = company_beaut
+df_fundamentals["config_info"] = "BDR"
 
 for (columnName, columnData) in df_fundamentals.iteritems():
     df_fundamentals[columnName] = np.where(df_fundamentals[columnName] == "-", 0, df_fundamentals[columnName])

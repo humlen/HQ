@@ -1,0 +1,23 @@
+﻿{
+	"name":"Cloudkit",
+	"dataColors":["#283641","#1F2C33","#101719","#F4FFFF","#6C91BF","#138A36","#E5625E","#FF7F11","#B388EB","#648DE5","#FBAF00"],
+	"textClasses":
+		{
+		"label":
+			{
+			"fontFace":"DIN Light"
+			},
+		"callout":
+			{
+			"fontFace":"DIN"
+			},
+		"title":
+			{
+			"fontFace":"DIN"
+			},
+		"header":
+			{
+			"fontFace":"DIN"
+			}
+		}
+}
