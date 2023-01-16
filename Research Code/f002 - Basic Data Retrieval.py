@@ -427,7 +427,8 @@ df_fundamentals = fundamentals.T
 df_fundamentals["ticker"] = ticker
 df_fundamentals["company"] = company
 df_fundamentals["company_b"] = company_beaut
-df_fundamentals["config_info"] = "BDR"
+df_fundamentals["version_name"] = "BDR"
+df_fundamentals["version_number"] = "Version 2.01"
 
 for (columnName, columnData) in df_fundamentals.iteritems():
     df_fundamentals[columnName] = np.where(df_fundamentals[columnName] == "-", 0, df_fundamentals[columnName])
