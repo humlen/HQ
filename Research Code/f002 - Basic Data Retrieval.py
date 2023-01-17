@@ -23,7 +23,7 @@ n_pings = 0
 
 
 #%% Inputs
-ticker = "tsla" 
+ticker = "pltr" 
 
 
 # Name & Version
@@ -37,7 +37,7 @@ start_date = "2013-01-01"
 master_tickers = pd.read_csv("C:/Users/eirik/OneDrive/Documents/Cloudkit/Database/master__tickers.csv") 
 meta_stock = master_tickers.loc[master_tickers['ticker'] == ticker]
 company = meta_stock["comp_name"].values
-company = np.array2string(company).replace("[","").replace("]","").replace("'","")
+company = np.array2string(company).replace("[","").replace("]","").replace("'","").replace('"','')
 company_beaut = meta_stock["comp_name_2"].values
 company_beaut = np.array2string(company_beaut).replace("[","").replace("]","").replace("'","")
 print ('Getting data for ' + company_beaut + '...\n')
@@ -435,7 +435,7 @@ for (columnName, columnData) in df_fundamentals.iteritems():
 #%% Merge 
 
 # Merge Quarterly Data
-df_data = Q_Revenue.merge(Q_NetInc, left_on='Date', right_on='Date')
+df_data = Q_Revenue.merge(Q_NetInc, how="left", left_on='Date', right_on='Date')
 df_data = df_data.merge(Q_Eps, left_on = 'Date', right_on = 'Date')
 df_data = df_data.merge(Q_Fcf, left_on = 'Date', right_on = 'Date')
 df_data = df_data.merge(Q_Shares, left_on = 'Date', right_on = 'Date')
@@ -443,7 +443,7 @@ df_data = df_data.merge(Q_Roa, left_on = 'Date', right_on = 'Date')
 df_data = df_data.merge(Q_Roe, left_on = 'Date', right_on = 'Date')
 
 if len(Q_Roi) > 0:
-  df_data = df_data.merge(Q_Roi, left_on = 'Date', right_on = 'Date')
+  df_data = df_data.merge(Q_Roi, how="left", left_on = 'Date', right_on = 'Date')
 else:
   df_data["ROI"] = ""
   df_data["ROI QoQ"] = ""
@@ -458,6 +458,7 @@ df_data = df_data.merge(Q_OpEx, left_on = 'Date', right_on = 'Date')
 df_data = df_data.merge(Q_RnD, left_on = 'Date', right_on = 'Date')
 df_data = df_data.merge(Q_Cash, left_on = 'Date', right_on = 'Date')
 df_data = df_data.merge(Q_Debt, left_on = 'Date', right_on = 'Date')
+
 
 df_data = df_data.sort_values(by=['Date'], ascending = False)
 df_data = df_data.reset_index()

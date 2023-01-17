@@ -9,16 +9,14 @@ x: Experimental code
 ### Research 
 <details>
   <summary>r001 - ROx Impact</summary>
-\
-\
+
 ### Summary 
 Attempting to analyze how ROA/E/I/IC have impacted future returns in the past
 
 #### Changelog
 - v 1.00
     - official release of working version of the BDR 
-\
-\
+
  
 </details>
 
@@ -26,14 +24,14 @@ Attempting to analyze how ROA/E/I/IC have impacted future returns in the past
 
 <details>
   <summary>r002 - Linearity Rankings</summary>
-  \
-  \
+  
 ### Summary 
 Attempting to analyze how ROA/E/I/IC have impacted future returns in the past. Reseach used as foundation found here: https://www.alpharithms.com/correlation-analysis-414321/ , https://www.scribbr.com/statistics/correlation-coefficient/
 
 #### Changelog
-\
-\
+- v 1.00
+    - Official release of working version of the Linearity ranker, outputting the top 50 linearity results by a combination of 
+    Pearson R and number of quarters used to calculate linearity (max 52)
 </details>
 
 
