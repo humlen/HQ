@@ -14,16 +14,21 @@ import numpy as np
 import warnings
 from bs4 import BeautifulSoup as soup
 from urllib.request import Request, urlopen
+import time
 
+# Caveats and config
 warnings.filterwarnings("ignore")
+start_time = time.time()
+n_pings = 0
 
 
 #%% Inputs
-ticker = "intc" 
+ticker = "tsla" 
 
 
-# Config
-version = "2.00"
+# Name & Version
+version_name = "BDR"
+version_number = "2.02"
 
 #%% Preparations
 ticker = ticker.upper()
@@ -35,6 +40,7 @@ company = meta_stock["comp_name"].values
 company = np.array2string(company).replace("[","").replace("]","").replace("'","")
 company_beaut = meta_stock["comp_name_2"].values
 company_beaut = np.array2string(company_beaut).replace("[","").replace("]","").replace("'","")
+print ('Getting data for ' + company_beaut + '...\n')
 
 # Resources
 mt =          "https://www.macrotrends.net/stocks/charts/"
@@ -71,8 +77,6 @@ Q_Shares    = pd.read_html(shares)[1]
 Q_ShEquity  = pd.read_html(shequity)[1] 
 Q_OpEx      = pd.read_html(opex)[1]
 Q_RnD       = pd.read_html(rnd)[1]
-
-# ADDED v1.0
 Q_Cash      = pd.read_html(cash)[1]
 Q_Debt      = pd.read_html(debt)[1]
 
@@ -363,6 +367,7 @@ Q_Debt["Long Term Debt 5Y CAGR"]  = ((Q_Debt['Long Term Debt'].pct_change(20)+1)
 Q_Debt["Long Term Debt"] = -1*Q_Debt["Long Term Debt"]
 Q_Debt = Q_Debt[Q_Debt["Date"]>start_date] # Snips data to target time frame
 
+
 #%% Price Data
 
 stock = yf.Ticker(ticker)
@@ -378,17 +383,11 @@ df_histprice_cols = df_histprice.columns.tolist()
 df_histprice_cols = df_histprice_cols[-1:] + df_histprice_cols[:-1]
 df_histprice = df_histprice[df_histprice_cols]
 df_histprice = df_histprice.reset_index(drop=True)
-#df_histprice['Date'] = pd.to_datetime(df_histprice['Date']).dt.date
-#df_histprice['Date'] = pd.to_datetime(df_histprice['Date']).dt.date # For some reason we need to repeat this line
 
 
-df_histprice.info()
 #%%
 
 pd.set_option('display.max_colwidth', 25)
-
-# Input
-print ('Getting data for ' + ticker + '...\n')
 
 # Set up scraper
 req = Request(fv, headers={'User-Agent': 'Mozilla/5.0'})
@@ -427,8 +426,8 @@ df_fundamentals = fundamentals.T
 df_fundamentals["ticker"] = ticker
 df_fundamentals["company"] = company
 df_fundamentals["company_b"] = company_beaut
-df_fundamentals["version_name"] = "BDR"
-df_fundamentals["version_number"] = "Version 2.01"
+df_fundamentals["version_name"] = version_name
+df_fundamentals["version_number"] = "version "+version_number
 
 for (columnName, columnData) in df_fundamentals.iteritems():
     df_fundamentals[columnName] = np.where(df_fundamentals[columnName] == "-", 0, df_fundamentals[columnName])
@@ -465,6 +464,7 @@ df_data = df_data.sort_values(by=['Date'], ascending = False)
 df_data = df_data.reset_index()
 df_data = df_data.drop("index", axis=1)
 
+
 #%%
 # Remove timezones
 df_histprice['Date'] = df_histprice['Date'].dt.tz_localize(None)
@@ -475,3 +475,6 @@ with pd.ExcelWriter('C:/Users/eirik/OneDrive/Documents/Cloudkit/PowerBI Resource
     df_data.to_excel(writer, sheet_name='Quarterly Data')
     df_histprice.to_excel(writer, sheet_name='Price Data')
     df_fundamentals.to_excel(writer, sheet_name='Info') 
+    
+# End Execution
+print("Execution time:  %s seconds" % round((time.time() - start_time),2))
