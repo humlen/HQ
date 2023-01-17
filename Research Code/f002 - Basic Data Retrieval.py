@@ -28,7 +28,7 @@ ticker = "tsla"
 
 # Name & Version
 version_name = "BDR"
-version_number = "2.02"
+version_number = "2.1.0"
 
 #%% Preparations
 ticker = ticker.upper()
