@@ -9,6 +9,12 @@ The Basic Data Retrieval (BDR) Dashboard is a quick way to extract fundamental i
 we can still get a good glance on short notice that will give a good idea if there are any red flags about the given equity to discourage further investigation
 
 #### Changelog
+- v 2.1.0
+    - Added diagnostics (time)
+    - Fixed price alignment
+    - Uniformed chart presentation
+    - Set standard for (Blank) cards
+
 - v 2.02
     - Uniformed card presentation
 

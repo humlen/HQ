@@ -431,8 +431,7 @@ df_fundamentals["version_number"] = "version "+version_number
 
 for (columnName, columnData) in df_fundamentals.iteritems():
     df_fundamentals[columnName] = np.where(df_fundamentals[columnName] == "-", 0, df_fundamentals[columnName])
-
-
+    
 #%% Merge 
 
 # Merge Quarterly Data
