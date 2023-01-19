@@ -23,7 +23,7 @@ n_pings = 0
 
 
 #%% Inputs
-ticker = "pltr" 
+ticker = "eqnr" 
 
 
 # Name & Version
