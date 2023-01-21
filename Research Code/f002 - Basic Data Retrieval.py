@@ -25,12 +25,12 @@ n_pings = 0
 
 
 #%% Inputs
-ticker = "lpx" 
+ticker = "intc"
 
 
 # Name & Version
 version_name = "BDR"
-version_number = "2.1.0"
+version_number = "3.0.0"
 
 #%% Preparations
 ticker = ticker.upper()
@@ -106,6 +106,7 @@ df_IncomeStatement = df_IncomeStatement.rename(columns = {'index':'Date'})
 df_IncomeStatement = df_IncomeStatement.sort_values(by=["Date"])
 
     # Revenue
+df_IncomeStatement["Revenue"] = df_IncomeStatement["Revenue"].replace("",0)
 df_IncomeStatement["Revenue"] = df_IncomeStatement["Revenue"].astype("float64")
 df_IncomeStatement["Revenue - QoQ"] = df_IncomeStatement["Revenue"].pct_change(1)
 df_IncomeStatement["Revenue - YoY"] = df_IncomeStatement["Revenue"].pct_change(4)
@@ -115,11 +116,16 @@ df_IncomeStatement["Revenue TTM - YoY"] = df_IncomeStatement["Revenue TTM"].pct_
 df_IncomeStatement["Revenue TTM - 5Y CAGR"]  = ((df_IncomeStatement['Revenue TTM'].pct_change(20)+1)**0.2)-1
 
     # SG&A Metrics
+df_IncomeStatement["SG&A Expenses"] = df_IncomeStatement["SG&A Expenses"].replace("",0)
 df_IncomeStatement["SG&A Expenses"] = df_IncomeStatement["SG&A Expenses"].astype("float64")
 df_IncomeStatement["SG&A TTM"] = df_IncomeStatement["SG&A Expenses"].rolling(4).sum()
 df_IncomeStatement["SG&A Percentage of Revenue"] = df_IncomeStatement["SG&A TTM"]/df_IncomeStatement["Revenue TTM"]
+df_IncomeStatement["SG&A Percentage of Revenue - QoQ"] = df_IncomeStatement["SG&A Percentage of Revenue"].pct_change(1)
+df_IncomeStatement["SG&A Percentage of Revenue - YoY"] = df_IncomeStatement["SG&A Percentage of Revenue"].pct_change(4)
+df_IncomeStatement["SG&A Percentage of Revenue - 5Y CAGR"]  = ((df_IncomeStatement['SG&A Percentage of Revenue'].pct_change(20)+1)**0.2)-1
 
     # Net Income
+df_IncomeStatement["Net Income"] = df_IncomeStatement["Net Income"].replace("",0)
 df_IncomeStatement["Net Income"] = df_IncomeStatement["Net Income"].astype("float64")
 df_IncomeStatement["Net Income - QoQ"] = df_IncomeStatement["Net Income"].pct_change(1)
 df_IncomeStatement["Net Income - YoY"] = df_IncomeStatement["Net Income"].pct_change(4)
@@ -129,6 +135,7 @@ df_IncomeStatement["Net Income TTM - YoY"] = df_IncomeStatement["Net Income TTM"
 df_IncomeStatement["Net Income TTM - 5Y CAGR"]  = ((df_IncomeStatement['Net Income TTM'].pct_change(20)+1)**0.2)-1
 
     # EBITDA
+df_IncomeStatement["EBITDA"] = df_IncomeStatement["EBITDA"].replace("",0)
 df_IncomeStatement["EBITDA"] = df_IncomeStatement["EBITDA"].astype("float64")
 df_IncomeStatement["EBITDA - QoQ"] = df_IncomeStatement["EBITDA"].pct_change(1)
 df_IncomeStatement["EBITDA - YoY"] = df_IncomeStatement["EBITDA"].pct_change(4)
@@ -138,12 +145,14 @@ df_IncomeStatement["EBITDA TTM - YoY"] = df_IncomeStatement["EBITDA TTM"].pct_ch
 df_IncomeStatement["EBITDA TTM - 5Y CAGR"]  = ((df_IncomeStatement['EBITDA TTM'].pct_change(20)+1)**0.2)-1   
     
     # Shares Outstanding
+df_IncomeStatement["Shares Outstanding"] = df_IncomeStatement["Shares Outstanding"].replace("",0)
 df_IncomeStatement["Shares Outstanding"] = df_IncomeStatement["Shares Outstanding"].astype("float64")
 df_IncomeStatement["Shares Outstanding - QoQ"] = df_IncomeStatement["Shares Outstanding"].pct_change(1) 
 df_IncomeStatement["Shares Outstanding - YoY"] = df_IncomeStatement["Shares Outstanding"].pct_change(4)    
 df_IncomeStatement["Shares Outstanding - 5Y CAGR"] = ((df_IncomeStatement['Shares Outstanding'].pct_change(20)+1)**0.2)-1    
 
     # EPS
+df_IncomeStatement["EPS - Earnings Per Share"] = df_IncomeStatement["EPS - Earnings Per Share"].replace("",0)
 df_IncomeStatement["EPS - Earnings Per Share"] = df_IncomeStatement["EPS - Earnings Per Share"].astype("float64")
 df_IncomeStatement["EPS - QoQ"] = df_IncomeStatement["EPS - Earnings Per Share"].pct_change(1)
 df_IncomeStatement["EPS - YoY"] = df_IncomeStatement["EPS - Earnings Per Share"].pct_change(4)
@@ -187,20 +196,49 @@ df_BalanceSheet = df_BalanceSheet.rename(columns = {'index':'Date'})
 df_BalanceSheet = df_BalanceSheet.sort_values(by=["Date"])
 
     # Cash On Hand
-        
-    
+df_BalanceSheet["Cash On Hand"] = df_BalanceSheet["Cash On Hand"].replace("",0)
+df_BalanceSheet["Cash On Hand"] = df_BalanceSheet["Cash On Hand"].astype("float64")
+df_BalanceSheet["Cash On Hand - QoQ"] = df_BalanceSheet["Cash On Hand"].pct_change(1)
+df_BalanceSheet["Cash On Hand - YoY"] = df_BalanceSheet["Cash On Hand"].pct_change(4)
+df_BalanceSheet["Cash On Hand - 5Y CAGR"]  = ((df_BalanceSheet['Cash On Hand'].pct_change(20)+1)**0.2)-1   
+
     # Total Current Assets
-    
+df_BalanceSheet["Total Current Assets"] = df_BalanceSheet["Total Current Assets"].replace("",0)
+df_BalanceSheet["Total Current Assets"] = df_BalanceSheet["Total Current Assets"].astype("float64")
+df_BalanceSheet["Total Current Assets - QoQ"] = df_BalanceSheet["Total Current Assets"].pct_change(1)
+df_BalanceSheet["Total Current Assets - YoY"] = df_BalanceSheet["Total Current Assets"].pct_change(4)
+df_BalanceSheet["Total Current Assets - 5Y CAGR"]  = ((df_BalanceSheet['Total Current Assets'].pct_change(20)+1)**0.2)-1    
     
     # Total Current Liabilities
-    
+df_BalanceSheet["Total Current Liabilities"] = df_BalanceSheet["Total Current Liabilities"].replace("",0)
+df_BalanceSheet["Total Current Liabilities"] = df_BalanceSheet["Total Current Liabilities"].astype("float64") *-1
+df_BalanceSheet["Total Current Liabilities - QoQ"] = df_BalanceSheet["Total Current Liabilities"].pct_change(1)
+df_BalanceSheet["Total Current Liabilities - YoY"] = df_BalanceSheet["Total Current Liabilities"].pct_change(4)
+df_BalanceSheet["Total Current Liabilities - 5Y CAGR"]  = ((df_BalanceSheet['Total Current Liabilities'].pct_change(20)+1)**0.2)-1    
     
     # Total Liabilities
-    
+df_BalanceSheet["Total Liabilities"] = df_BalanceSheet["Total Liabilities"].replace("",0)
+df_BalanceSheet["Total Liabilities"] = df_BalanceSheet["Total Liabilities"].astype("float64") *-1
+df_BalanceSheet["Total Liabilities - QoQ"] = df_BalanceSheet["Total Liabilities"].pct_change(1)
+df_BalanceSheet["Total Liabilities - YoY"] = df_BalanceSheet["Total Liabilities"].pct_change(4)
+df_BalanceSheet["Total Liabilities - 5Y CAGR"]  = ((df_BalanceSheet['Total Liabilities'].pct_change(20)+1)**0.2)-1    
+     
     
     # Shareholder Equity
+df_BalanceSheet["Share Holder Equity"] = df_BalanceSheet["Share Holder Equity"].replace("",0)
+df_BalanceSheet["Share Holder Equity"] = df_BalanceSheet["Share Holder Equity"].astype("float64")
+df_BalanceSheet["Share Holder Equity - QoQ"] = df_BalanceSheet["Share Holder Equity"].pct_change(1)
+df_BalanceSheet["Share Holder Equity - YoY"] = df_BalanceSheet["Share Holder Equity"].pct_change(4)
+df_BalanceSheet["Share Holder Equity - 5Y CAGR"]  = ((df_BalanceSheet['Share Holder Equity'].pct_change(20)+1)**0.2)-1    
 
 
+    # Shareholder Equity
+df_BalanceSheet["Long Term Debt"] = df_BalanceSheet["Long Term Debt"].replace("",0).replace([np.inf,-np.inf],0).replace("inf",0)
+df_BalanceSheet["Long Term Debt"] = df_BalanceSheet["Long Term Debt"].astype("float64") *-1
+df_BalanceSheet["Long Term Debt - QoQ"] = df_BalanceSheet["Long Term Debt"].pct_change(1).replace([np.inf,-np.inf],0)
+df_BalanceSheet["Long Term Debt - YoY"] = df_BalanceSheet["Long Term Debt"].pct_change(4).replace([np.inf,-np.inf],0)
+df_BalanceSheet["Long Term Debt - 5Y CAGR"]  = ((df_BalanceSheet['Long Term Debt'].pct_change(20)+1)**0.2)-1
+df_BalanceSheet["Long Term Debt - 5Y CAGR"] = df_BalanceSheet["Long Term Debt - 5Y CAGR"].replace([np.inf,-np.inf],0)
 
 #%% Cash Flow Statement
 html = requests.get(cashflowstatement)
@@ -232,6 +270,82 @@ df_CashFlowStatement = df_CashFlowStatement.T
 df_CashFlowStatement = df_CashFlowStatement.reset_index()
 df_CashFlowStatement = df_CashFlowStatement.rename(columns = {'index':'Date'})
 
+# Calculated Values
+df_CashFlowStatement = df_CashFlowStatement.sort_values(by=["Date"])
+
+    # Cash Flow From Operating Activities
+df_CashFlowStatement["Cash Flow From Operating Activities"] = df_CashFlowStatement["Cash Flow From Operating Activities"].replace("",0)
+df_CashFlowStatement["Operating Cash Flow"] = df_CashFlowStatement["Cash Flow From Operating Activities"].astype("float64")
+df_CashFlowStatement["Operating Cash Flow - QoQ"] = df_CashFlowStatement["Operating Cash Flow"].pct_change(1)
+df_CashFlowStatement["Operating Cash Flow - YoY"] = df_CashFlowStatement["Operating Cash Flow"].pct_change(4)
+df_CashFlowStatement["Operating Cash Flow TTM"] = df_CashFlowStatement["Operating Cash Flow"].rolling(4).sum() 
+df_CashFlowStatement["Operating Cash Flow TTM - QoQ"] = df_CashFlowStatement["Operating Cash Flow TTM"].pct_change(1)
+df_CashFlowStatement["Operating Cash Flow TTM - YoY"] = df_CashFlowStatement["Operating Cash Flow TTM"].pct_change(4)
+df_CashFlowStatement["Operating Cash Flow TTM - 5Y CAGR"]  = ((df_CashFlowStatement['Operating Cash Flow TTM'].pct_change(20)+1)**0.2)-1    
+    
+    # Cash Flow From Investing Activities
+df_CashFlowStatement["Cash Flow From Investing Activities"] = df_CashFlowStatement["Cash Flow From Investing Activities"].replace("",0)
+df_CashFlowStatement["Investing Cash Flow"] = df_CashFlowStatement["Cash Flow From Investing Activities"].astype("float64")
+df_CashFlowStatement["Investing Cash Flow - QoQ"] = df_CashFlowStatement["Investing Cash Flow"].pct_change(1)
+df_CashFlowStatement["Investing Cash Flow - YoY"] = df_CashFlowStatement["Investing Cash Flow"].pct_change(4)
+df_CashFlowStatement["Investing Cash Flow TTM"] = df_CashFlowStatement["Investing Cash Flow"].rolling(4).sum() 
+df_CashFlowStatement["Investing Cash Flow TTM - QoQ"] = df_CashFlowStatement["Investing Cash Flow TTM"].pct_change(1)
+df_CashFlowStatement["Investing Cash Flow TTM - YoY"] = df_CashFlowStatement["Investing Cash Flow TTM"].pct_change(4)
+df_CashFlowStatement["Investing Cash Flow TTM - 5Y CAGR"]  = ((df_CashFlowStatement['Investing Cash Flow TTM'].pct_change(20)+1)**0.2)-1        
+    
+    # Cash Flow From Financing Activities
+df_CashFlowStatement["Cash Flow From Financial Activities"] = df_CashFlowStatement["Cash Flow From Financial Activities"].replace("",0)
+df_CashFlowStatement["Financing Cash Flow"] = df_CashFlowStatement["Cash Flow From Financial Activities"].astype("float64")
+df_CashFlowStatement["Financing Cash Flow - QoQ"] = df_CashFlowStatement["Financing Cash Flow"].pct_change(1)
+df_CashFlowStatement["Financing Cash Flow - YoY"] = df_CashFlowStatement["Financing Cash Flow"].pct_change(4)
+df_CashFlowStatement["Financing Cash Flow TTM"] = df_CashFlowStatement["Financing Cash Flow"].rolling(4).sum() 
+df_CashFlowStatement["Financing Cash Flow TTM - QoQ"] = df_CashFlowStatement["Financing Cash Flow TTM"].pct_change(1)
+df_CashFlowStatement["Financing Cash Flow TTM - YoY"] = df_CashFlowStatement["Financing Cash Flow TTM"].pct_change(4)
+df_CashFlowStatement["Financing Cash Flow TTM - 5Y CAGR"]  = ((df_CashFlowStatement['Financing Cash Flow TTM'].pct_change(20)+1)**0.2)-1            
+    
+    #  Net Cash Flow
+df_CashFlowStatement["Net Cash Flow"] = df_CashFlowStatement["Net Cash Flow"].replace("",0)
+df_CashFlowStatement["Net Cash Flow"] = df_CashFlowStatement["Net Cash Flow"].astype("float64")
+df_CashFlowStatement["Net Cash Flow - QoQ"] = df_CashFlowStatement["Net Cash Flow"].pct_change(1)
+df_CashFlowStatement["Net Cash Flow - YoY"] = df_CashFlowStatement["Net Cash Flow"].pct_change(4)
+df_CashFlowStatement["Net Cash Flow TTM"] = df_CashFlowStatement["Net Cash Flow"].rolling(4).sum() 
+df_CashFlowStatement["Net Cash Flow TTM - QoQ"] = df_CashFlowStatement["Net Cash Flow TTM"].pct_change(1)
+df_CashFlowStatement["Net Cash Flow TTM - YoY"] = df_CashFlowStatement["Net Cash Flow TTM"].pct_change(4)
+df_CashFlowStatement["Net Cash Flow TTM - 5Y CAGR"]  = ((df_CashFlowStatement['Net Cash Flow TTM'].pct_change(20)+1)**0.2)-1         
+    
+    # Stock-Based Compensation
+df_CashFlowStatement["Stock-Based Compensation"] = df_CashFlowStatement["Stock-Based Compensation"].replace("",0)
+df_CashFlowStatement["Stock-Based Compensation"] = df_CashFlowStatement["Stock-Based Compensation"].astype("float64")
+df_CashFlowStatement["Stock-Based Compensation - QoQ"] = df_CashFlowStatement["Stock-Based Compensation"].pct_change(1).replace([np.inf,-np.inf],0)
+df_CashFlowStatement["Stock-Based Compensation - YoY"] = df_CashFlowStatement["Stock-Based Compensation"].pct_change(4).replace([np.inf,-np.inf],0)
+df_CashFlowStatement["Stock-Based Compensation TTM"] = df_CashFlowStatement["Stock-Based Compensation"].rolling(4).sum() 
+df_CashFlowStatement["Stock-Based Compensation TTM - QoQ"] = df_CashFlowStatement["Stock-Based Compensation TTM"].pct_change(1).replace([np.inf,-np.inf],0)
+df_CashFlowStatement["Stock-Based Compensation TTM - YoY"] = df_CashFlowStatement["Stock-Based Compensation TTM"].pct_change(4).replace([np.inf,-np.inf],0)
+df_CashFlowStatement["Stock-Based Compensation TTM - 5Y CAGR"]  = ((df_CashFlowStatement['Stock-Based Compensation TTM'].pct_change(20)+1)**0.2)-1        
+df_CashFlowStatement["Stock-Based Compensation TTM - 5Y CAGR"] = df_CashFlowStatement["Stock-Based Compensation TTM - 5Y CAGR"].replace([np.inf,-np.inf],0) 
+      
+    # Common Stock Dividends Paid
+df_CashFlowStatement["Common Stock Dividends Paid"] = df_CashFlowStatement["Common Stock Dividends Paid"].replace("",0)
+df_CashFlowStatement["Common Stock Dividends Paid"] = df_CashFlowStatement["Common Stock Dividends Paid"].astype("float64")
+df_CashFlowStatement["Common Stock Dividends Paid - QoQ"] = df_CashFlowStatement["Common Stock Dividends Paid"].pct_change(1).replace([np.inf,-np.inf],0)
+df_CashFlowStatement["Common Stock Dividends Paid - YoY"] = df_CashFlowStatement["Common Stock Dividends Paid"].pct_change(4).replace([np.inf,-np.inf],0)
+df_CashFlowStatement["Common Stock Dividends Paid TTM"] = df_CashFlowStatement["Common Stock Dividends Paid"].rolling(4).sum() 
+df_CashFlowStatement["Common Stock Dividends Paid TTM - QoQ"] = df_CashFlowStatement["Common Stock Dividends Paid TTM"].pct_change(1).replace([np.inf,-np.inf],0)
+df_CashFlowStatement["Common Stock Dividends Paid TTM - YoY"] = df_CashFlowStatement["Common Stock Dividends Paid TTM"].pct_change(4).replace([np.inf,-np.inf],0)
+df_CashFlowStatement["Common Stock Dividends Paid TTM - 5Y CAGR"] = ((df_CashFlowStatement['Common Stock Dividends Paid TTM'].pct_change(20)+1)**0.2)-1     
+df_CashFlowStatement["Common Stock Dividends Paid TTM - 5Y CAGR"] = df_CashFlowStatement["Common Stock Dividends Paid TTM - 5Y CAGR"].replace([np.inf,-np.inf],0)    
+
+    # Share Buybacks
+df_CashFlowStatement["Share Buybacks"] = df_CashFlowStatement["Net Common Equity Issued/Repurchased"].replace("",0)
+df_CashFlowStatement["Share Buybacks"] = df_CashFlowStatement["Share Buybacks"].astype("float64")
+df_CashFlowStatement["Share Buybacks - QoQ"] = df_CashFlowStatement["Share Buybacks"].pct_change(1).replace([np.inf,-np.inf],0)
+df_CashFlowStatement["Share Buybacks - YoY"] = df_CashFlowStatement["Share Buybacks"].pct_change(4).replace([np.inf,-np.inf],0)
+df_CashFlowStatement["Share Buybacks TTM"] = df_CashFlowStatement["Share Buybacks"].rolling(4).sum() 
+df_CashFlowStatement["Share Buybacks TTM - QoQ"] = df_CashFlowStatement["Share Buybacks TTM"].pct_change(1).replace([np.inf,-np.inf],0)
+df_CashFlowStatement["Share Buybacks TTM - YoY"] = df_CashFlowStatement["Share Buybacks TTM"].pct_change(4).replace([np.inf,-np.inf],0)
+df_CashFlowStatement["Share Buybacks TTM - 5Y CAGR"] = ((df_CashFlowStatement['Share Buybacks TTM'].pct_change(20)+1)**0.2)-1     
+df_CashFlowStatement["Share Buybacks TTM - 5Y CAGR"] = df_CashFlowStatement["Share Buybacks TTM - 5Y CAGR"].replace([np.inf,-np.inf],0)        
+      
 #%% Data Ingestions
 
 # Quarterly Data (where Q and A are available)
@@ -255,7 +369,7 @@ Q_Roa       = pd.read_html(roa)[0]
 Q_GrossM    = pd.read_html(grossmarg)[0] 
 Q_OperatingM = pd.read_html(opermarg)[0] 
 
-
+"""
 # Revenue & TTM Revenue
 Q_Revenue.columns = ['Date','Revenue'] # Rename cols
 Q_Revenue["Revenue"] = Q_Revenue["Revenue"].str.replace("[$,]","",regex=True) # Removes commas and $ from revenues
@@ -312,7 +426,7 @@ Q_Eps["TTM EPS YoY"] = Q_Eps['TTM EPS'].pct_change(4)
 Q_Eps["TTM EPS 5Y CAGR"]  = ((Q_Eps['TTM EPS'].pct_change(20)+1)**0.2)-1
 Q_Eps = Q_Eps[Q_Eps["Date"]>start_date] # Snips data to target time frame
 
-
+"""
 # FCF & TTM FCF
 Q_Fcf.columns = ['Date','FCF'] # Rename cols
 #Q_Fcf["FCF"] = Q_Fcf["FCF"].str.replace("[$,]","",regex=True) # Removes commas and $ from FCF
@@ -331,7 +445,7 @@ Q_Fcf["TTM FCF YoY"] = Q_Fcf['TTM FCF'].pct_change(4)
 Q_Fcf["TTM FCF 5Y CAGR"]  = ((Q_Fcf['TTM FCF'].pct_change(20)+1)**0.2)-1
 Q_Fcf = Q_Fcf[Q_Fcf["Date"]>start_date] # Snips data to target time frame
 
-
+"""
 # Shares Outstanding
 Q_Shares.columns = ['Date','Shares Outstanding'] # Rename cols
 #Q_Shares["Shares Outstanding"] = Q_Shares["Shares Outstanding"].str.replace("[$,]","",regex=True) # Removes commas and $ from FCF
@@ -345,7 +459,7 @@ Q_Shares["Shares Outstanding YoY"] = Q_Shares['Shares Outstanding'].pct_change(4
 Q_Shares["Shares Outstanding 5Y CAGR"]  = ((Q_Shares['Shares Outstanding'].pct_change(20)+1)**0.2)-1
 Q_Shares = Q_Shares[Q_Shares["Date"]>start_date] # Snips data to target time frame
 
-
+"""
 # ROE
 Q_Roe.columns = ['Date','drop_1','drop_2','ROE'] # Rename cols
 Q_Roe = Q_Roe[['Date','ROE']]
@@ -443,7 +557,7 @@ Q_GrossM = Q_GrossM[Q_GrossM["Date"]>start_date] # Snips data to target time fra
 Q_OperatingM = Q_OperatingM[Q_OperatingM["Date"]>start_date] # Snips data to target time frame
 Q_NetM = Q_NetM[Q_NetM["Date"]>start_date] # Snips data to target time frame
 
-
+"""
 # Net Shareholder Margin
 Q_ShEquity.columns = ['Date','Net Shareholder Equity'] # Rename cols
 Q_ShEquity["Net Shareholder Equity"] = Q_ShEquity["Net Shareholder Equity"].str.replace("[$,]","",regex=True) # Removes commas and $ from EPS
@@ -457,7 +571,7 @@ Q_ShEquity["Net Shareholder Equity YoY"] = Q_ShEquity['Net Shareholder Equity'].
 Q_ShEquity["Net Shareholder Equity 5Y CAGR"]  = ((Q_ShEquity['Net Shareholder Equity'].pct_change(20)+1)**0.2)-1
 Q_ShEquity = Q_ShEquity[Q_ShEquity["Date"]>start_date] # Snips data to target time frame
 
-
+"""
 # OpEx & TTM OpEx
 Q_OpEx.columns = ['Date','OpEx'] # Rename cols
 Q_OpEx["OpEx"] = Q_OpEx["OpEx"].str.replace("[$,]","",regex=True) # Removes commas and $ from EPS
@@ -501,7 +615,7 @@ Q_RnD["TTM R&D 5Y CAGR"]  = ((Q_RnD['TTM R&D'].pct_change(20)+1)**0.2)-1
 Q_OpEx = Q_OpEx[Q_OpEx["Date"]>start_date] # Snips data to target time frame
 Q_RnD = Q_RnD[Q_RnD["Date"]>start_date] # Snips data to target time frame
 
-
+"""
 # Cash on Hand
 Q_Cash.columns = ['Date','Cash on Hand'] # Rename cols
 Q_Cash["Cash on Hand"] = Q_Cash["Cash on Hand"].str.replace("[$,]","",regex=True) # Removes commas and $ from Cash on Hand
@@ -533,7 +647,7 @@ Q_Debt["Long Term Debt YoY"] = Q_Debt['Long Term Debt'].pct_change(4)
 Q_Debt["Long Term Debt 5Y CAGR"]  = ((Q_Debt['Long Term Debt'].pct_change(20)+1)**0.2)-1
 Q_Debt["Long Term Debt"] = -1*Q_Debt["Long Term Debt"]
 Q_Debt = Q_Debt[Q_Debt["Date"]>start_date] # Snips data to target time frame
-
+"""
 
 #%% Price Data
 
@@ -602,12 +716,12 @@ for (columnName, columnData) in df_fundamentals.iteritems():
 #%% Merge 
 
 # Merge Quarterly Data
-df_data = Q_Revenue.merge(Q_NetInc, how="left", left_on='Date', right_on='Date')
-df_data = df_data.merge(Q_Eps, left_on = 'Date', right_on = 'Date')
-df_data = df_data.merge(Q_Fcf, left_on = 'Date', right_on = 'Date')
-df_data = df_data.merge(Q_Shares, left_on = 'Date', right_on = 'Date')
+df_data = Q_Fcf.merge(Q_Roe, how="left", left_on='Date', right_on='Date')
+#df_data = df_data.merge(Q_Eps, left_on = 'Date', right_on = 'Date')
+#df_data = df_data.merge(Q_Fcf, left_on = 'Date', right_on = 'Date')
+#df_data = df_data.merge(Q_Shares, left_on = 'Date', right_on = 'Date')
 df_data = df_data.merge(Q_Roa, left_on = 'Date', right_on = 'Date')
-df_data = df_data.merge(Q_Roe, left_on = 'Date', right_on = 'Date')
+#df_data = df_data.merge(Q_Roe, left_on = 'Date', right_on = 'Date')
 
 if len(Q_Roi) > 0:
   df_data = df_data.merge(Q_Roi, how="left", left_on = 'Date', right_on = 'Date')
@@ -620,11 +734,11 @@ else:
 df_data = df_data.merge(Q_GrossM, left_on = 'Date', right_on = 'Date')
 df_data = df_data.merge(Q_OperatingM, left_on = 'Date', right_on = 'Date')
 df_data = df_data.merge(Q_NetM, left_on = 'Date', right_on = 'Date')
-df_data = df_data.merge(Q_ShEquity, left_on = 'Date', right_on = 'Date')
+#df_data = df_data.merge(Q_ShEquity, left_on = 'Date', right_on = 'Date')
 df_data = df_data.merge(Q_OpEx, left_on = 'Date', right_on = 'Date')
 df_data = df_data.merge(Q_RnD, left_on = 'Date', right_on = 'Date')
-df_data = df_data.merge(Q_Cash, left_on = 'Date', right_on = 'Date')
-df_data = df_data.merge(Q_Debt, left_on = 'Date', right_on = 'Date')
+#df_data = df_data.merge(Q_Cash, left_on = 'Date', right_on = 'Date')
+#df_data = df_data.merge(Q_Debt, left_on = 'Date', right_on = 'Date')
 
 
 df_data = df_data.sort_values(by=['Date'], ascending = False)
