@@ -12,9 +12,11 @@ import pandas as pd
 import yfinance as yf
 import numpy as np
 import warnings
-from bs4 import BeautifulSoup as soup
+from bs4 import BeautifulSoup 
 from urllib.request import Request, urlopen
 import time
+import requests
+import json
 
 # Caveats and config
 warnings.filterwarnings("ignore")
@@ -23,7 +25,7 @@ n_pings = 0
 
 
 #%% Inputs
-ticker = "eqnr" 
+ticker = "lpx" 
 
 
 # Name & Version
@@ -43,27 +45,192 @@ company_beaut = np.array2string(company_beaut).replace("[","").replace("]","").r
 print ('Getting data for ' + company_beaut + '...\n')
 
 # Resources
-mt =          "https://www.macrotrends.net/stocks/charts/"
-fv =          "https://finviz.com/quote.ashx?t={ticker}&p=d".format(ticker=ticker)
-revenue =     "{base}{ticker}/{company}/revenue".format(ticker=ticker,company=company,base=mt)
-netinc =      "{base}{ticker}/{company}/net-income".format(ticker=ticker,company=company,base=mt)
-eps =         "{base}{ticker}/{company}/eps-earnings-per-share-diluted".format(ticker=ticker,company=company,base=mt) 
-fcf =         "{base}{ticker}/{company}/free-cash-flow".format(ticker=ticker,company=company,base=mt)
-shares =      "{base}{ticker}/{company}/shares-outstanding".format(ticker=ticker,company=company,base=mt)
-roe =         "{base}{ticker}/{company}/roe".format(ticker=ticker,company=company,base=mt)
-roi =         "{base}{ticker}/{company}/roi".format(ticker=ticker,company=company,base=mt)
-roa =         "{base}{ticker}/{company}/roa".format(ticker=ticker,company=company,base=mt)
-shequity =    "{base}{ticker}/{company}/total-share-holder-equity".format(ticker=ticker,company=company,base=mt)
-grossmarg =   "{base}{ticker}/{company}/gross-margin".format(ticker=ticker,company=company,base=mt)
-opermarg =    "{base}{ticker}/{company}/operating-margin".format(ticker=ticker,company=company,base=mt)
-netmarg =     "{base}{ticker}/{company}/net-profit-margin".format(ticker=ticker,company=company,base=mt)
-opex =        "{base}{ticker}/{company}/operating-expenses".format(ticker=ticker,company=company,base=mt)
-rnd =         "{base}{ticker}/{company}/research-development-expenses".format(ticker=ticker,company=company,base=mt)
+mt =                "https://www.macrotrends.net/stocks/charts/"
+fv =                "https://finviz.com/quote.ashx?t={ticker}&p=d".format(ticker=ticker)
+revenue =           "{base}{ticker}/{company}/revenue".format(ticker=ticker,company=company,base=mt)
+netinc =            "{base}{ticker}/{company}/net-income".format(ticker=ticker,company=company,base=mt)
+eps =               "{base}{ticker}/{company}/eps-earnings-per-share-diluted".format(ticker=ticker,company=company,base=mt) 
+fcf =               "{base}{ticker}/{company}/free-cash-flow".format(ticker=ticker,company=company,base=mt)
+shares =            "{base}{ticker}/{company}/shares-outstanding".format(ticker=ticker,company=company,base=mt)
+roe =               "{base}{ticker}/{company}/roe".format(ticker=ticker,company=company,base=mt)
+roi =               "{base}{ticker}/{company}/roi".format(ticker=ticker,company=company,base=mt)
+roa =               "{base}{ticker}/{company}/roa".format(ticker=ticker,company=company,base=mt)
+shequity =          "{base}{ticker}/{company}/total-share-holder-equity".format(ticker=ticker,company=company,base=mt)
+grossmarg =         "{base}{ticker}/{company}/gross-margin".format(ticker=ticker,company=company,base=mt)
+opermarg =          "{base}{ticker}/{company}/operating-margin".format(ticker=ticker,company=company,base=mt)
+netmarg =           "{base}{ticker}/{company}/net-profit-margin".format(ticker=ticker,company=company,base=mt)
+opex =              "{base}{ticker}/{company}/operating-expenses".format(ticker=ticker,company=company,base=mt)
+rnd =               "{base}{ticker}/{company}/research-development-expenses".format(ticker=ticker,company=company,base=mt)
 
 # ADDED v1.0
-cash =        "{base}{ticker}/{company}/cash-on-hand".format(ticker=ticker,company=company,base=mt)
-debt =        "{base}{ticker}/{company}/long-term-debt".format(ticker=ticker,company=company,base=mt)
+cash =              "{base}{ticker}/{company}/cash-on-hand".format(ticker=ticker,company=company,base=mt)
+debt =              "{base}{ticker}/{company}/long-term-debt".format(ticker=ticker,company=company,base=mt)
 
+# Added v 3.0
+incomestatement =   "{base}{ticker}/{company}/income-statement?freq=Q".format(ticker=ticker,company=company,base=mt)
+balancesheet =      "{base}{ticker}/{company}/balance-sheet?freq=Q".format(ticker=ticker,company=company,base=mt)
+cashflowstatement = "{base}{ticker}/{company}/cash-flow-statement?freq=Q".format(ticker=ticker,company=company,base=mt)
+
+#%% Income Statement
+html = requests.get(incomestatement)
+soup = BeautifulSoup(html.text, 'html.parser')
+htmltext = soup.prettify()
+
+varlist = {}
+vars  = htmltext.split("var ")[1:]  # get each var entry
+for v in vars:
+    name = v.split("=")[0].strip()  # first part is the var [name = "]
+    try:
+        value = v.split("originalData = ")[1]        # second part is the value [ = "..."]
+        value = value.replace(";","")
+    except:
+        value = 0
+    varlist[name] = value           # store it for printing below           
+
+originalData = varlist["originalData"]
+
+# Data Formatting - Income Statement
+data = json.loads(originalData)
+df_IncomeStatement = pd.DataFrame.from_dict(data)
+df_IncomeStatement["field_name"] = df_IncomeStatement["field_name"].str.split(">").str[1]
+df_IncomeStatement["field_name"] = df_IncomeStatement["field_name"].str.split("<").str[0]
+df_IncomeStatement = df_IncomeStatement.drop(["popup_icon"], axis = 1)
+df_IncomeStatement = df_IncomeStatement.rename(columns = {'field_name':'Date'})
+df_IncomeStatement.index = df_IncomeStatement["Date"]
+df_IncomeStatement = df_IncomeStatement.drop(["Date"], axis = 1)
+df_IncomeStatement = df_IncomeStatement.T
+df_IncomeStatement = df_IncomeStatement.reset_index()
+df_IncomeStatement = df_IncomeStatement.rename(columns = {'index':'Date'})
+
+# Calculated Values
+df_IncomeStatement = df_IncomeStatement.sort_values(by=["Date"])
+
+    # Revenue
+df_IncomeStatement["Revenue"] = df_IncomeStatement["Revenue"].astype("float64")
+df_IncomeStatement["Revenue - QoQ"] = df_IncomeStatement["Revenue"].pct_change(1)
+df_IncomeStatement["Revenue - YoY"] = df_IncomeStatement["Revenue"].pct_change(4)
+df_IncomeStatement["Revenue TTM"] = df_IncomeStatement["Revenue"].rolling(4).sum() 
+df_IncomeStatement["Revenue TTM - QoQ"] = df_IncomeStatement["Revenue TTM"].pct_change(1)
+df_IncomeStatement["Revenue TTM - YoY"] = df_IncomeStatement["Revenue TTM"].pct_change(4)
+df_IncomeStatement["Revenue TTM - 5Y CAGR"]  = ((df_IncomeStatement['Revenue TTM'].pct_change(20)+1)**0.2)-1
+
+    # SG&A Metrics
+df_IncomeStatement["SG&A Expenses"] = df_IncomeStatement["SG&A Expenses"].astype("float64")
+df_IncomeStatement["SG&A TTM"] = df_IncomeStatement["SG&A Expenses"].rolling(4).sum()
+df_IncomeStatement["SG&A Percentage of Revenue"] = df_IncomeStatement["SG&A TTM"]/df_IncomeStatement["Revenue TTM"]
+
+    # Net Income
+df_IncomeStatement["Net Income"] = df_IncomeStatement["Net Income"].astype("float64")
+df_IncomeStatement["Net Income - QoQ"] = df_IncomeStatement["Net Income"].pct_change(1)
+df_IncomeStatement["Net Income - YoY"] = df_IncomeStatement["Net Income"].pct_change(4)
+df_IncomeStatement["Net Income TTM"] = df_IncomeStatement["Net Income"].rolling(4).sum() 
+df_IncomeStatement["Net Income TTM - QoQ"] = df_IncomeStatement["Net Income TTM"].pct_change(1)
+df_IncomeStatement["Net Income TTM - YoY"] = df_IncomeStatement["Net Income TTM"].pct_change(4)
+df_IncomeStatement["Net Income TTM - 5Y CAGR"]  = ((df_IncomeStatement['Net Income TTM'].pct_change(20)+1)**0.2)-1
+
+    # EBITDA
+df_IncomeStatement["EBITDA"] = df_IncomeStatement["EBITDA"].astype("float64")
+df_IncomeStatement["EBITDA - QoQ"] = df_IncomeStatement["EBITDA"].pct_change(1)
+df_IncomeStatement["EBITDA - YoY"] = df_IncomeStatement["EBITDA"].pct_change(4)
+df_IncomeStatement["EBITDA TTM"] = df_IncomeStatement["EBITDA"].rolling(4).sum() 
+df_IncomeStatement["EBITDA TTM - QoQ"] = df_IncomeStatement["EBITDA TTM"].pct_change(1)
+df_IncomeStatement["EBITDA TTM - YoY"] = df_IncomeStatement["EBITDA TTM"].pct_change(4)
+df_IncomeStatement["EBITDA TTM - 5Y CAGR"]  = ((df_IncomeStatement['EBITDA TTM'].pct_change(20)+1)**0.2)-1   
+    
+    # Shares Outstanding
+df_IncomeStatement["Shares Outstanding"] = df_IncomeStatement["Shares Outstanding"].astype("float64")
+df_IncomeStatement["Shares Outstanding - QoQ"] = df_IncomeStatement["Shares Outstanding"].pct_change(1) 
+df_IncomeStatement["Shares Outstanding - YoY"] = df_IncomeStatement["Shares Outstanding"].pct_change(4)    
+df_IncomeStatement["Shares Outstanding - 5Y CAGR"] = ((df_IncomeStatement['Shares Outstanding'].pct_change(20)+1)**0.2)-1    
+
+    # EPS
+df_IncomeStatement["EPS - Earnings Per Share"] = df_IncomeStatement["EPS - Earnings Per Share"].astype("float64")
+df_IncomeStatement["EPS - QoQ"] = df_IncomeStatement["EPS - Earnings Per Share"].pct_change(1)
+df_IncomeStatement["EPS - YoY"] = df_IncomeStatement["EPS - Earnings Per Share"].pct_change(4)
+df_IncomeStatement["EPS TTM"] = df_IncomeStatement["EPS - Earnings Per Share"].rolling(4).sum() 
+df_IncomeStatement["EPS TTM - QoQ"] = df_IncomeStatement["EPS TTM"].pct_change(1)
+df_IncomeStatement["EPS TTM - YoY"] = df_IncomeStatement["EPS TTM"].pct_change(4)
+df_IncomeStatement["EPS TTM - 5Y CAGR"]  = ((df_IncomeStatement['EPS TTM'].pct_change(20)+1)**0.2)-1   
+
+#%% Balance Sheet
+html = requests.get(balancesheet)
+soup = BeautifulSoup(html.text, 'html.parser')
+htmltext = soup.prettify()
+
+varlist = {}
+vars  = htmltext.split("var ")[1:]  # get each var entry
+for v in vars:
+    name = v.split("=")[0].strip()  # first part is the var [name = "]
+    try:
+        value = v.split("originalData = ")[1]        # second part is the value [ = "..."]
+        value = value.replace(";","")
+    except:
+        value = 0
+    varlist[name] = value           # store it for printing below        
+    
+originalData = varlist["originalData"]
+
+# Data Formatting - Income Statement
+data = json.loads(originalData)
+df_BalanceSheet = pd.DataFrame.from_dict(data)
+df_BalanceSheet["field_name"] = df_BalanceSheet["field_name"].str.split(">").str[1]
+df_BalanceSheet["field_name"] = df_BalanceSheet["field_name"].str.split("<").str[0]
+df_BalanceSheet = df_BalanceSheet.drop(["popup_icon"], axis = 1)
+df_BalanceSheet = df_BalanceSheet.rename(columns = {'field_name':'Date'})
+df_BalanceSheet.index = df_BalanceSheet["Date"]
+df_BalanceSheet = df_BalanceSheet.drop(["Date"], axis = 1)
+df_BalanceSheet = df_BalanceSheet.T
+df_BalanceSheet = df_BalanceSheet.reset_index()
+df_BalanceSheet = df_BalanceSheet.rename(columns = {'index':'Date'})
+
+# Calculated Values
+df_BalanceSheet = df_BalanceSheet.sort_values(by=["Date"])
+
+    # Cash On Hand
+        
+    
+    # Total Current Assets
+    
+    
+    # Total Current Liabilities
+    
+    
+    # Total Liabilities
+    
+    
+    # Shareholder Equity
+
+
+
+#%% Cash Flow Statement
+html = requests.get(cashflowstatement)
+soup = BeautifulSoup(html.text, 'html.parser')
+htmltext = soup.prettify()
+
+varlist = {}
+vars  = htmltext.split("var ")[1:]  # get each var entry
+for v in vars:
+    name = v.split("=")[0].strip()  # first part is the var [name = "]
+    try:
+        value = v.split("originalData = ")[1]        # second part is the value [ = "..."]
+        value = value.replace(";","")
+    except:
+        value = 0
+    varlist[name] = value           # store it for printing below           
+
+originalData = varlist["originalData"]
+
+data = json.loads(originalData)
+df_CashFlowStatement = pd.DataFrame.from_dict(data)
+df_CashFlowStatement["field_name"] = df_CashFlowStatement["field_name"].str.split(">").str[1]
+df_CashFlowStatement["field_name"] = df_CashFlowStatement["field_name"].str.split("<").str[0]
+df_CashFlowStatement = df_CashFlowStatement.drop(["popup_icon"], axis = 1)
+df_CashFlowStatement = df_CashFlowStatement.rename(columns = {'field_name':'Date'})
+df_CashFlowStatement.index = df_CashFlowStatement["Date"]
+df_CashFlowStatement = df_CashFlowStatement.drop(["Date"], axis = 1)
+df_CashFlowStatement = df_CashFlowStatement.T
+df_CashFlowStatement = df_CashFlowStatement.reset_index()
+df_CashFlowStatement = df_CashFlowStatement.rename(columns = {'index':'Date'})
 
 #%% Data Ingestions
 
@@ -392,7 +559,7 @@ pd.set_option('display.max_colwidth', 25)
 # Set up scraper
 req = Request(fv, headers={'User-Agent': 'Mozilla/5.0'})
 webpage = urlopen(req).read()
-html = soup(webpage, "html.parser")
+html = BeautifulSoup(webpage, "html.parser")
 
 try:
     # Find fundamentals table
@@ -475,6 +642,10 @@ with pd.ExcelWriter('C:/Users/eirik/OneDrive/Documents/Cloudkit/PowerBI Resource
     df_data.to_excel(writer, sheet_name='Quarterly Data')
     df_histprice.to_excel(writer, sheet_name='Price Data')
     df_fundamentals.to_excel(writer, sheet_name='Info') 
+    df_IncomeStatement.to_excel(writer, sheet_name='Income Statement', index = False) 
+    df_BalanceSheet.to_excel(writer, sheet_name='Balance Sheet', index = False) 
+    df_CashFlowStatement.to_excel(writer, sheet_name='Cash Flow Statement', index = False) 
+
     
 # End Execution
 print("Execution time:  %s seconds" % round((time.time() - start_time),2))
