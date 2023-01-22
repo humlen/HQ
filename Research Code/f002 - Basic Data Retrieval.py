@@ -17,6 +17,7 @@ from urllib.request import Request, urlopen
 import time
 import requests
 import json
+from datetime import datetime
 
 # Caveats and config
 warnings.filterwarnings("ignore")
@@ -25,7 +26,7 @@ n_pings = 0
 
 
 #%% Inputs
-ticker = "intc"
+ticker = "lpx"
 
 
 # Name & Version
@@ -108,6 +109,7 @@ df_IncomeStatement = df_IncomeStatement.sort_values(by=["Date"])
     # Revenue
 df_IncomeStatement["Revenue"] = df_IncomeStatement["Revenue"].replace("",0)
 df_IncomeStatement["Revenue"] = df_IncomeStatement["Revenue"].astype("float64")
+df_IncomeStatement["Revenue"] = df_IncomeStatement["Revenue"] * 1000000
 df_IncomeStatement["Revenue - QoQ"] = df_IncomeStatement["Revenue"].pct_change(1)
 df_IncomeStatement["Revenue - YoY"] = df_IncomeStatement["Revenue"].pct_change(4)
 df_IncomeStatement["Revenue TTM"] = df_IncomeStatement["Revenue"].rolling(4).sum() 
@@ -127,6 +129,7 @@ df_IncomeStatement["SG&A Percentage of Revenue - 5Y CAGR"]  = ((df_IncomeStateme
     # Net Income
 df_IncomeStatement["Net Income"] = df_IncomeStatement["Net Income"].replace("",0)
 df_IncomeStatement["Net Income"] = df_IncomeStatement["Net Income"].astype("float64")
+df_IncomeStatement["Net Income"] = df_IncomeStatement["Net Income"] * 1000000
 df_IncomeStatement["Net Income - QoQ"] = df_IncomeStatement["Net Income"].pct_change(1)
 df_IncomeStatement["Net Income - YoY"] = df_IncomeStatement["Net Income"].pct_change(4)
 df_IncomeStatement["Net Income TTM"] = df_IncomeStatement["Net Income"].rolling(4).sum() 
@@ -145,8 +148,9 @@ df_IncomeStatement["EBITDA TTM - YoY"] = df_IncomeStatement["EBITDA TTM"].pct_ch
 df_IncomeStatement["EBITDA TTM - 5Y CAGR"]  = ((df_IncomeStatement['EBITDA TTM'].pct_change(20)+1)**0.2)-1   
     
     # Shares Outstanding
-df_IncomeStatement["Shares Outstanding"] = df_IncomeStatement["Shares Outstanding"].replace("",0)
+df_IncomeStatement["Shares Outstanding"] = df_IncomeStatement["Shares Outstanding"].replace("",0) 
 df_IncomeStatement["Shares Outstanding"] = df_IncomeStatement["Shares Outstanding"].astype("float64")
+df_IncomeStatement["Shares Outstanding"] = df_IncomeStatement["Shares Outstanding"] * 1000000
 df_IncomeStatement["Shares Outstanding - QoQ"] = df_IncomeStatement["Shares Outstanding"].pct_change(1) 
 df_IncomeStatement["Shares Outstanding - YoY"] = df_IncomeStatement["Shares Outstanding"].pct_change(4)    
 df_IncomeStatement["Shares Outstanding - 5Y CAGR"] = ((df_IncomeStatement['Shares Outstanding'].pct_change(20)+1)**0.2)-1    
@@ -160,6 +164,22 @@ df_IncomeStatement["EPS TTM"] = df_IncomeStatement["EPS - Earnings Per Share"].r
 df_IncomeStatement["EPS TTM - QoQ"] = df_IncomeStatement["EPS TTM"].pct_change(1)
 df_IncomeStatement["EPS TTM - YoY"] = df_IncomeStatement["EPS TTM"].pct_change(4)
 df_IncomeStatement["EPS TTM - 5Y CAGR"]  = ((df_IncomeStatement['EPS TTM'].pct_change(20)+1)**0.2)-1   
+
+    # Operating Expenses
+df_IncomeStatement["Operating Expenses"] = df_IncomeStatement["Operating Expenses"].replace("",0)
+df_IncomeStatement["Operating Expenses"] = df_IncomeStatement["Operating Expenses"].astype("float64")
+df_IncomeStatement["Operating Expenses - QoQ"] = df_IncomeStatement["Operating Expenses"].pct_change(1)
+df_IncomeStatement["Operating Expenses - YoY"] = df_IncomeStatement["Operating Expenses"].pct_change(4)
+df_IncomeStatement["Operating Expenses TTM"] = df_IncomeStatement["Operating Expenses"].rolling(4).sum() 
+df_IncomeStatement["Operating Expenses TTM - QoQ"] = df_IncomeStatement["Operating Expenses TTM"].pct_change(1)
+df_IncomeStatement["Operating Expenses TTM - YoY"] = df_IncomeStatement["Operating Expenses TTM"].pct_change(4)
+df_IncomeStatement["Operating Expenses TTM - 5Y CAGR"]  = ((df_IncomeStatement['Operating Expenses TTM'].pct_change(20)+1)**0.2)-1   
+
+    # Revenue / Net Income
+df_IncomeStatement["Revenue / Net Income"] = df_IncomeStatement["Revenue TTM"]/df_IncomeStatement["Net Income TTM"]
+df_IncomeStatement["Revenue / Net Income Lower Quintile"] = df_IncomeStatement["Revenue / Net Income"].quantile(.2)
+df_IncomeStatement["Revenue / Net Income Upper Quintile"] = df_IncomeStatement["Revenue / Net Income"].quantile(.8)
+
 
 #%% Balance Sheet
 html = requests.get(balancesheet)
@@ -350,16 +370,16 @@ df_CashFlowStatement["Share Buybacks TTM - 5Y CAGR"] = df_CashFlowStatement["Sha
 
 # Quarterly Data (where Q and A are available)
   # 0 for Annual, 1 for Quarterly
-Q_Revenue   = pd.read_html(revenue)[1] 
-Q_NetInc    = pd.read_html(netinc)[1] 
-Q_Eps       = pd.read_html(eps)[1] 
+#Q_Revenue   = pd.read_html(revenue)[1] 
+#Q_NetInc    = pd.read_html(netinc)[1] 
+#Q_Eps       = pd.read_html(eps)[1] 
 Q_Fcf       = pd.read_html(fcf)[1] 
-Q_Shares    = pd.read_html(shares)[1]
-Q_ShEquity  = pd.read_html(shequity)[1] 
+#Q_Shares    = pd.read_html(shares)[1]
+#Q_ShEquity  = pd.read_html(shequity)[1] 
 Q_OpEx      = pd.read_html(opex)[1]
 Q_RnD       = pd.read_html(rnd)[1]
-Q_Cash      = pd.read_html(cash)[1]
-Q_Debt      = pd.read_html(debt)[1]
+#Q_Cash      = pd.read_html(cash)[1]
+#Q_Debt      = pd.read_html(debt)[1]
 
 # Quarterly Data (Rates where only Q are available)
   # 0 for Quarterly Data, 1 for Company Metadata
@@ -444,6 +464,7 @@ Q_Fcf["TTM FCF QoQ"] = Q_Fcf['TTM FCF'].pct_change(1)
 Q_Fcf["TTM FCF YoY"] = Q_Fcf['TTM FCF'].pct_change(4)
 Q_Fcf["TTM FCF 5Y CAGR"]  = ((Q_Fcf['TTM FCF'].pct_change(20)+1)**0.2)-1
 Q_Fcf = Q_Fcf[Q_Fcf["Date"]>start_date] # Snips data to target time frame
+
 
 """
 # Shares Outstanding
@@ -538,6 +559,7 @@ Q_OperatingM["Operating Margin QoQ"] = Q_OperatingM['Operating Margin'].pct_chan
 Q_OperatingM["Operating Margin YoY"] = Q_OperatingM['Operating Margin'].pct_change(4)
 Q_OperatingM["Operating Margin 5Y CAGR"]  = ((Q_OperatingM['Operating Margin'].pct_change(20)+1)**0.2)-1
 
+
 # Net Margin
 Q_NetM = pd.read_html(netmarg)[0] # 0 for Annual, 1 for Quarterly #! REMOVE WHEN FINISHED
 Q_NetM.columns = ['Date','drop_1','drop_2','Net Margin'] # Rename cols
@@ -571,7 +593,7 @@ Q_ShEquity["Net Shareholder Equity YoY"] = Q_ShEquity['Net Shareholder Equity'].
 Q_ShEquity["Net Shareholder Equity 5Y CAGR"]  = ((Q_ShEquity['Net Shareholder Equity'].pct_change(20)+1)**0.2)-1
 Q_ShEquity = Q_ShEquity[Q_ShEquity["Date"]>start_date] # Snips data to target time frame
 
-"""
+
 # OpEx & TTM OpEx
 Q_OpEx.columns = ['Date','OpEx'] # Rename cols
 Q_OpEx["OpEx"] = Q_OpEx["OpEx"].str.replace("[$,]","",regex=True) # Removes commas and $ from EPS
@@ -589,6 +611,8 @@ Q_OpEx["OpEx YoY"] = Q_OpEx['OpEx'].pct_change(4)
 Q_OpEx["TTM OpEx QoQ"] = Q_OpEx['TTM OpEx'].pct_change(1)
 Q_OpEx["TTM OpEx YoY"] = Q_OpEx['TTM OpEx'].pct_change(4)
 Q_OpEx["TTM OpEx 5Y CAGR"]  = ((Q_OpEx['TTM OpEx'].pct_change(20)+1)**0.2)-1
+"""
+
 
 # R&D & TTM R&D
 Q_RnD.columns = ['Date','R&D'] # Rename cols
@@ -612,7 +636,7 @@ Q_RnD["TTM R&D QoQ"] = Q_RnD['TTM R&D'].pct_change(1)
 Q_RnD["TTM R&D YoY"] = Q_RnD['TTM R&D'].pct_change(4)
 Q_RnD["TTM R&D 5Y CAGR"]  = ((Q_RnD['TTM R&D'].pct_change(20)+1)**0.2)-1
 
-Q_OpEx = Q_OpEx[Q_OpEx["Date"]>start_date] # Snips data to target time frame
+#Q_OpEx = Q_OpEx[Q_OpEx["Date"]>start_date] # Snips data to target time frame
 Q_RnD = Q_RnD[Q_RnD["Date"]>start_date] # Snips data to target time frame
 
 """
@@ -663,8 +687,31 @@ df_histprice = df_histprice[df_histprice.index>=start_date]
 df_histprice_cols = df_histprice.columns.tolist()
 df_histprice_cols = df_histprice_cols[-1:] + df_histprice_cols[:-1]
 df_histprice = df_histprice[df_histprice_cols]
+df_dates = pd.DataFrame({'Date':pd.date_range(start=start_date, end=datetime.today())})
 df_histprice = df_histprice.reset_index(drop=True)
+df_histprice['Date'] = df_histprice['Date'].dt.tz_localize(None)
+df_price = pd.merge(df_dates, df_histprice, how = 'left', left_on='Date', right_on = 'Date')
+df_price = df_price.ffill(axis=0)
 
+#%%
+# P/E With Quantiles
+df_eps = df_IncomeStatement[["Date","EPS TTM"]]
+df_eps = df_eps.astype({"Date": 'datetime64[ns]'})
+df_price = df_histprice.merge(df_eps, how = "left", left_on = "Date", right_on = "Date")
+df_price = df_price.ffill(axis=0)
+df_price["P/E"] = df_price["Close"]/df_price["EPS TTM"]
+df_price["P/E Lower Quintile"] = df_price["P/E"].quantile(.2)
+df_price["P/E Upper Quintile"] = df_price["P/E"].quantile(.8)
+
+# P/S With Quantiles
+df_shares = df_IncomeStatement[["Date","Shares Outstanding","Revenue TTM"]]
+df_shares = df_shares.astype({"Date": 'datetime64[ns]'})
+df_price = df_price.merge(df_shares, how="left", left_on = "Date", right_on = "Date")
+df_price = df_price.ffill(axis=0)
+df_price["MCap"] = df_price["Close"]*df_price["Shares Outstanding"]
+df_price["P/S"] =  df_price["MCap"]/df_price["Revenue TTM"]
+df_price["P/S Lower Quintile"] = df_price["P/S"].quantile(.2)
+df_price["P/S Upper Quintile"] = df_price["P/S"].quantile(.8)
 
 #%%
 
@@ -717,11 +764,7 @@ for (columnName, columnData) in df_fundamentals.iteritems():
 
 # Merge Quarterly Data
 df_data = Q_Fcf.merge(Q_Roe, how="left", left_on='Date', right_on='Date')
-#df_data = df_data.merge(Q_Eps, left_on = 'Date', right_on = 'Date')
-#df_data = df_data.merge(Q_Fcf, left_on = 'Date', right_on = 'Date')
-#df_data = df_data.merge(Q_Shares, left_on = 'Date', right_on = 'Date')
 df_data = df_data.merge(Q_Roa, left_on = 'Date', right_on = 'Date')
-#df_data = df_data.merge(Q_Roe, left_on = 'Date', right_on = 'Date')
 
 if len(Q_Roi) > 0:
   df_data = df_data.merge(Q_Roi, how="left", left_on = 'Date', right_on = 'Date')
@@ -735,7 +778,7 @@ df_data = df_data.merge(Q_GrossM, left_on = 'Date', right_on = 'Date')
 df_data = df_data.merge(Q_OperatingM, left_on = 'Date', right_on = 'Date')
 df_data = df_data.merge(Q_NetM, left_on = 'Date', right_on = 'Date')
 #df_data = df_data.merge(Q_ShEquity, left_on = 'Date', right_on = 'Date')
-df_data = df_data.merge(Q_OpEx, left_on = 'Date', right_on = 'Date')
+#df_data = df_data.merge(Q_OpEx, left_on = 'Date', right_on = 'Date')
 df_data = df_data.merge(Q_RnD, left_on = 'Date', right_on = 'Date')
 #df_data = df_data.merge(Q_Cash, left_on = 'Date', right_on = 'Date')
 #df_data = df_data.merge(Q_Debt, left_on = 'Date', right_on = 'Date')
@@ -747,14 +790,11 @@ df_data = df_data.drop("index", axis=1)
 
 
 #%%
-# Remove timezones
-df_histprice['Date'] = df_histprice['Date'].dt.tz_localize(None)
-
 
 # To Excel
 with pd.ExcelWriter('C:/Users/eirik/OneDrive/Documents/Cloudkit/PowerBI Resources/BDR.xlsx') as writer:  
     df_data.to_excel(writer, sheet_name='Quarterly Data')
-    df_histprice.to_excel(writer, sheet_name='Price Data')
+    df_price.to_excel(writer, sheet_name='Price Data')
     df_fundamentals.to_excel(writer, sheet_name='Info') 
     df_IncomeStatement.to_excel(writer, sheet_name='Income Statement', index = False) 
     df_BalanceSheet.to_excel(writer, sheet_name='Balance Sheet', index = False) 
