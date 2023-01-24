@@ -23,13 +23,22 @@ Attempting to analyze how ROA/E/I/IC have impacted future returns in the past
 
 
 <details>
-  <summary>r002 - Linearity Rankings</summary>
+  <summary>Project Eidos</summary>
   
 ### Summary 
-Attempting to analyze how ROA/E/I/IC have impacted future returns in the past. Reseach used as foundation found here: https://www.alpharithms.com/correlation-analysis-414321/ , https://www.scribbr.com/statistics/correlation-coefficient/
+Scores stocks based on their ability to grow consistenly over a longer period of time.
 
 #### Changelog
-- v 1.00
+- v 2.0
+    - Rebuilt program to now run from the command line, and moved all calculations into functions that are called based on user input
+    - Added Revenue for Spearman & Pearson tests
+
+- v 1.2
+    - Changed data source to ETL process
+    - Added Spearman's Rho to Pearson's R
+    - Added Net Income in addition to EPS
+    
+- v 1.0
     - Official release of working version of the Linearity ranker, outputting the top 50 linearity results by a combination of 
     Pearson R and number of quarters used to calculate linearity (max 52)
 </details>

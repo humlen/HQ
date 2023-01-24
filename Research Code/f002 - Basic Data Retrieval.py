@@ -26,7 +26,7 @@ n_pings = 0
 
 
 #%% Inputs
-ticker = "ter"
+ticker = "intc"
 
 
 # Name & Version
