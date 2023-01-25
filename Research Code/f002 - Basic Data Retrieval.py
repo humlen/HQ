@@ -43,7 +43,7 @@ print("Booting "+version_name+" v "+version_number+"...")
 
 print(
 """
-========================================================================================================="""+color_open+color_green+"""
+======================================================================================================="""+color_open+color_green+"""
 
 8888888b.                   d8b                   888              888888b.   8888888b.  8888888b.  
 888   Y88b                  Y8P                   888              888  "88b  888  "Y88b 888   Y88b 
@@ -54,7 +54,7 @@ print(
 888        888    Y88..88P  888 Y8b.     Y88b.    Y88b.            888   d88P 888  .d88P 888  T88b  
 888        888     "Y88P"   888  "Y8888   "Y8888P  "Y888           8888888P"  8888888P"  888   T88b 
                             888  """   +color_close+"""                      
-======================== """+color_open+color_green+"  d88P  "+color_close+"""=======================================================================                             
+======================== """+color_open+color_green+"  d88P  "+color_close+"""======================================================================                             
                          """+color_open+color_green+"888P"+color_close+"\n")
 
  
@@ -70,7 +70,7 @@ start_time = time.time()
 #%% Preparations
 ticker = ticker.upper()
 yf_ticker = yf.Ticker(ticker)
-start_date = "2013-01-01"
+start_date = "2010-01-01"
 master_tickers = pd.read_csv("C:/Users/eirik/OneDrive/Documents/Cloudkit/Database/master__tickers.csv") 
 meta_stock = master_tickers.loc[master_tickers['ticker'] == ticker]
 company = meta_stock["comp_name"].values
@@ -608,8 +608,9 @@ df_eps = df_eps.astype({"Date": 'datetime64[ns]'})
 df_price = df_histprice.merge(df_eps, how = "left", left_on = "Date", right_on = "Date")
 df_price = df_price.ffill(axis=0)
 df_price["P/E"] = df_price["Close"]/df_price["EPS TTM"]
-df_price["P/E Lower Quintile"] = df_price["P/E"].quantile(.2)
-df_price["P/E Upper Quintile"] = df_price["P/E"].quantile(.8)
+df_price.loc[df_price["P/E"] < 0, "P/E"] = 0
+df_price["P/E Lower Quintile"] = df_price["P/E"].rolling(1460).quantile(.2)
+df_price["P/E Upper Quintile"] = df_price["P/E"].rolling(1460).quantile(.8)
 
 # P/S With Quantiles
 df_shares = df_IncomeStatement[["Date","Shares Outstanding","Revenue TTM"]]
@@ -618,8 +619,8 @@ df_price = df_price.merge(df_shares, how="left", left_on = "Date", right_on = "D
 df_price = df_price.ffill(axis=0)
 df_price["MCap"] = df_price["Close"]*df_price["Shares Outstanding"]
 df_price["P/S"] =  df_price["MCap"]/df_price["Revenue TTM"]
-df_price["P/S Lower Quintile"] = df_price["P/S"].quantile(.2)
-df_price["P/S Upper Quintile"] = df_price["P/S"].quantile(.8)
+df_price["P/S Lower Quintile"] = df_price["P/S"].rolling(1460).quantile(.2)
+df_price["P/S Upper Quintile"] = df_price["P/S"].rolling(1460).quantile(.8)
 
 #%%
 
