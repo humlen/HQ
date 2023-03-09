@@ -135,17 +135,43 @@ df_IncomeStatement = df_IncomeStatement.rename(columns = {'index':'Date'})
 # Calculated Values
 df_IncomeStatement = df_IncomeStatement.sort_values(by=["Date"])
 
-    # Revenue
-df_IncomeStatement["Revenue"] = df_IncomeStatement["Revenue"].replace("",0)
-df_IncomeStatement["Revenue"] = df_IncomeStatement["Revenue"].astype("float64")
-df_IncomeStatement["Revenue"] = df_IncomeStatement["Revenue"] * 1000000
-df_IncomeStatement["Revenue - QoQ"] = df_IncomeStatement["Revenue"].pct_change(1).replace([np.inf,-np.inf],0)
-df_IncomeStatement["Revenue - YoY"] = df_IncomeStatement["Revenue"].pct_change(4).replace([np.inf,-np.inf],0)
+    # Revenue OLD
+#df_IncomeStatement["Revenue"] = df_IncomeStatement["Revenue"].replace("",0)
+#df_IncomeStatement["Revenue"] = df_IncomeStatement["Revenue"].astype("float64")
+#df_IncomeStatement["Revenue"] = df_IncomeStatement["Revenue"] * 1000000
+#df_IncomeStatement["Revenue - QoQ"] = df_IncomeStatement["Revenue"].pct_change(1).replace([np.inf,-np.inf],0)
+#df_IncomeStatement["Revenue - YoY"] = df_IncomeStatement["Revenue"].pct_change(4).replace([np.inf,-np.inf],0)
+#df_IncomeStatement["Revenue TTM"] = df_IncomeStatement["Revenue"].rolling(4).sum() 
+#df_IncomeStatement["Revenue TTM - QoQ"] = df_IncomeStatement["Revenue TTM"].pct_change(1).replace([np.inf,-np.inf],0)
+#df_IncomeStatement["Revenue TTM - YoY"] = df_IncomeStatement["Revenue TTM"].pct_change(4).replace([np.inf,-np.inf],0)
+#df_IncomeStatement["Revenue TTM - 5Y CAGR"]  = ((df_IncomeStatement['Revenue TTM'].pct_change(20)+1)**0.2)-1
+#df_IncomeStatement["Revenue TTM - 5Y CAGR"] = df_IncomeStatement["Revenue TTM - 5Y CAGR"].replace([np.inf,-np.inf],0)
+   
+    # Revenue NEW
+df_IncomeStatement["Revenue"] = (
+    df_IncomeStatement["Revenue"]
+    .replace("",0)
+    .astype("float64")
+    .mul(1000000)
+    )
+
+df_IncomeStatement["Revenue - QoQ"] = df_IncomeStatement["Revenue"].pct_change(1)
+df_IncomeStatement["Revenue - QoQ"].fillna(0,inplace=True)
+
+df_IncomeStatement["Revenue - YoY"] = df_IncomeStatement["Revenue"].pct_change(4)
+df_IncomeStatement["Revenue - YoY"].fillna(0,inplace = True)
+
 df_IncomeStatement["Revenue TTM"] = df_IncomeStatement["Revenue"].rolling(4).sum() 
-df_IncomeStatement["Revenue TTM - QoQ"] = df_IncomeStatement["Revenue TTM"].pct_change(1).replace([np.inf,-np.inf],0)
-df_IncomeStatement["Revenue TTM - YoY"] = df_IncomeStatement["Revenue TTM"].pct_change(4).replace([np.inf,-np.inf],0)
+
+df_IncomeStatement["Revenue TTM - QoQ"] = df_IncomeStatement["Revenue TTM"].pct_change(1)
+df_IncomeStatement["Revenue TTM - QoQ"].fillna(0, inplace=True)
+ 
+df_IncomeStatement["Revenue TTM - YoY"] = df_IncomeStatement["Revenue TTM"].pct_change(4)
+df_IncomeStatement["Revenue TTM - YoY"].fillna(0, inplace=True)
+
 df_IncomeStatement["Revenue TTM - 5Y CAGR"]  = ((df_IncomeStatement['Revenue TTM'].pct_change(20)+1)**0.2)-1
-df_IncomeStatement["Revenue TTM - 5Y CAGR"] = df_IncomeStatement["Revenue TTM - 5Y CAGR"].replace([np.inf,-np.inf],0)
+df_IncomeStatement["Revenue TTM - 5Y CAGR"].fillna(0, inplace = True)
+ 
     # SG&A Metrics
 df_IncomeStatement["SG&A Expenses"] = df_IncomeStatement["SG&A Expenses"].replace("",0)
 df_IncomeStatement["SG&A Expenses"] = df_IncomeStatement["SG&A Expenses"].astype("float64")
