@@ -74,28 +74,15 @@ start_date = "2010-01-01"
 master_tickers = pd.read_csv("C:/Users/eirik/OneDrive/Documents/Cloudkit/Database/master__tickers.csv") 
 meta_stock = master_tickers.loc[master_tickers['ticker'] == ticker]
 company = meta_stock["comp_name"].values
-company = np.array2string(company).replace("[","").replace("]","").replace("'","").replace('"','')
+company = str(company).replace("[","").replace("]","").replace("'","").replace('"','')
 company_beaut = meta_stock["comp_name_2"].values
-company_beaut = np.array2string(company_beaut).replace("[","").replace("]","").replace("'","")
+company_beaut = str(company_beaut).replace("[","").replace("]","").replace("'","").replace('"','')
+
 print ('Getting data for ' + company_beaut + '...\n')
 
 # Resources
 mt =                "https://www.macrotrends.net/stocks/charts/"
 fv =                "https://finviz.com/quote.ashx?t={ticker}&p=d".format(ticker=ticker)
-fcf =               "{base}{ticker}/{company}/free-cash-flow".format(ticker=ticker,company=company,base=mt)
-roe =               "{base}{ticker}/{company}/roe".format(ticker=ticker,company=company,base=mt)
-roi =               "{base}{ticker}/{company}/roi".format(ticker=ticker,company=company,base=mt)
-roa =               "{base}{ticker}/{company}/roa".format(ticker=ticker,company=company,base=mt)
-grossmarg =         "{base}{ticker}/{company}/gross-margin".format(ticker=ticker,company=company,base=mt)
-opermarg =          "{base}{ticker}/{company}/operating-margin".format(ticker=ticker,company=company,base=mt)
-netmarg =           "{base}{ticker}/{company}/net-profit-margin".format(ticker=ticker,company=company,base=mt)
-rnd =               "{base}{ticker}/{company}/research-development-expenses".format(ticker=ticker,company=company,base=mt)
-
-# ADDED v1.0
-cash =              "{base}{ticker}/{company}/cash-on-hand".format(ticker=ticker,company=company,base=mt)
-debt =              "{base}{ticker}/{company}/long-term-debt".format(ticker=ticker,company=company,base=mt)
-
-# Added v 3.0
 incomestatement =   "{base}{ticker}/{company}/income-statement?freq=Q".format(ticker=ticker,company=company,base=mt)
 balancesheet =      "{base}{ticker}/{company}/balance-sheet?freq=Q".format(ticker=ticker,company=company,base=mt)
 cashflowstatement = "{base}{ticker}/{company}/cash-flow-statement?freq=Q".format(ticker=ticker,company=company,base=mt)
@@ -135,121 +122,82 @@ df_IncomeStatement = df_IncomeStatement.rename(columns = {'index':'Date'})
 # Calculated Values
 df_IncomeStatement = df_IncomeStatement.sort_values(by=["Date"])
 
-    # Revenue OLD
-#df_IncomeStatement["Revenue"] = df_IncomeStatement["Revenue"].replace("",0)
-#df_IncomeStatement["Revenue"] = df_IncomeStatement["Revenue"].astype("float64")
-#df_IncomeStatement["Revenue"] = df_IncomeStatement["Revenue"] * 1000000
-#df_IncomeStatement["Revenue - QoQ"] = df_IncomeStatement["Revenue"].pct_change(1).replace([np.inf,-np.inf],0)
-#df_IncomeStatement["Revenue - YoY"] = df_IncomeStatement["Revenue"].pct_change(4).replace([np.inf,-np.inf],0)
-#df_IncomeStatement["Revenue TTM"] = df_IncomeStatement["Revenue"].rolling(4).sum() 
-#df_IncomeStatement["Revenue TTM - QoQ"] = df_IncomeStatement["Revenue TTM"].pct_change(1).replace([np.inf,-np.inf],0)
-#df_IncomeStatement["Revenue TTM - YoY"] = df_IncomeStatement["Revenue TTM"].pct_change(4).replace([np.inf,-np.inf],0)
-#df_IncomeStatement["Revenue TTM - 5Y CAGR"]  = ((df_IncomeStatement['Revenue TTM'].pct_change(20)+1)**0.2)-1
-#df_IncomeStatement["Revenue TTM - 5Y CAGR"] = df_IncomeStatement["Revenue TTM - 5Y CAGR"].replace([np.inf,-np.inf],0)
-   
-    # Revenue NEW
-df_IncomeStatement["Revenue"] = (
-    df_IncomeStatement["Revenue"]
-    .replace("",0)
-    .astype("float64")
-    .mul(1000000)
-    )
+    # Revenue
+df_IncomeStatement["Revenue"] = (pd.to_numeric(df_IncomeStatement["Revenue"], errors = "coerce").fillna(0).mul(1000000))
+df_IncomeStatement["Revenue - QoQ"] = df_IncomeStatement["Revenue"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["Revenue - YoY"] = df_IncomeStatement["Revenue"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["Revenue TTM"] = df_IncomeStatement["Revenue"].rolling(4).sum()
+df_IncomeStatement["Revenue TTM - QoQ"] = df_IncomeStatement["Revenue TTM"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["Revenue TTM - YoY"] = df_IncomeStatement["Revenue TTM"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["Revenue TTM - 5Y CAGR"] = pow(df_IncomeStatement['Revenue TTM'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
 
-df_IncomeStatement["Revenue - QoQ"] = df_IncomeStatement["Revenue"].pct_change(1)
-df_IncomeStatement["Revenue - QoQ"].fillna(0,inplace=True)
-
-df_IncomeStatement["Revenue - YoY"] = df_IncomeStatement["Revenue"].pct_change(4)
-df_IncomeStatement["Revenue - YoY"].fillna(0,inplace = True)
-
-df_IncomeStatement["Revenue TTM"] = df_IncomeStatement["Revenue"].rolling(4).sum() 
-
-df_IncomeStatement["Revenue TTM - QoQ"] = df_IncomeStatement["Revenue TTM"].pct_change(1)
-df_IncomeStatement["Revenue TTM - QoQ"].fillna(0, inplace=True)
- 
-df_IncomeStatement["Revenue TTM - YoY"] = df_IncomeStatement["Revenue TTM"].pct_change(4)
-df_IncomeStatement["Revenue TTM - YoY"].fillna(0, inplace=True)
-
-df_IncomeStatement["Revenue TTM - 5Y CAGR"]  = ((df_IncomeStatement['Revenue TTM'].pct_change(20)+1)**0.2)-1
-df_IncomeStatement["Revenue TTM - 5Y CAGR"].fillna(0, inplace = True)
  
     # SG&A Metrics
-df_IncomeStatement["SG&A Expenses"] = df_IncomeStatement["SG&A Expenses"].replace("",0)
-df_IncomeStatement["SG&A Expenses"] = df_IncomeStatement["SG&A Expenses"].astype("float64")
-df_IncomeStatement["SG&A Expenses"] = df_IncomeStatement["SG&A Expenses"] * 1000000
+df_IncomeStatement["SG&A Expenses"] = (pd.to_numeric(df_IncomeStatement["SG&A Expenses"], errors = "coerce").fillna(0).mul(1000000))
+df_IncomeStatement["SG&A Expenses - QoQ"] = df_IncomeStatement["SG&A Expenses"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["SG&A Expenses - YoY"] = df_IncomeStatement["SG&A Expenses"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
 df_IncomeStatement["SG&A TTM"] = df_IncomeStatement["SG&A Expenses"].rolling(4).sum()
 df_IncomeStatement["SG&A Percentage of Revenue"] = df_IncomeStatement["SG&A TTM"]/df_IncomeStatement["Revenue TTM"]
-df_IncomeStatement["SG&A Percentage of Revenue - QoQ"] = df_IncomeStatement["SG&A Percentage of Revenue"].pct_change(1)
-df_IncomeStatement["SG&A Percentage of Revenue - YoY"] = df_IncomeStatement["SG&A Percentage of Revenue"].pct_change(4).replace([np.inf,-np.inf],0)
-df_IncomeStatement["SG&A Percentage of Revenue - 5Y CAGR"]  = ((df_IncomeStatement['SG&A Percentage of Revenue'].pct_change(20)+1)**0.2)-1
-df_IncomeStatement["SG&A Percentage of Revenue - 5Y CAGR"] = df_IncomeStatement["SG&A Percentage of Revenue - 5Y CAGR"].replace([np.inf,-np.inf],0)
-    
-    # Research & Development Expenses
-df_IncomeStatement["R&D Expenses"] = df_IncomeStatement["Research And Development Expenses"].replace("",0)
-df_IncomeStatement["R&D Expenses"] = df_IncomeStatement["R&D Expenses"].astype("float64")
-df_IncomeStatement["R&D Expenses"] = df_IncomeStatement["R&D Expenses"] * 1000000
+df_IncomeStatement["SG&A Percentage of Revenue - QoQ"] = df_IncomeStatement["SG&A Percentage of Revenue"].pct_change(1).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["SG&A Percentage of Revenue - YoY"] = df_IncomeStatement["SG&A Percentage of Revenue"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["SG&A Percentage of Revenue - 5Y CAGR"] = pow(df_IncomeStatement['SG&A Percentage of Revenue'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
+
+    # Research & Development Expenses 
+df_IncomeStatement["R&D Expenses"] = (pd.to_numeric(df_IncomeStatement["Research And Development Expenses"], errors = "coerce").fillna(0).mul(1000000))
+df_IncomeStatement["R&D Expenses - QoQ"] = df_IncomeStatement["R&D Expenses"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["R&D Expenses - YoY"] = df_IncomeStatement["R&D Expenses"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
 df_IncomeStatement["R&D Expenses TTM"] = df_IncomeStatement["R&D Expenses"].rolling(4).sum()
-df_IncomeStatement["R&D Expenses TTM - QoQ"] = df_IncomeStatement["R&D Expenses TTM"].pct_change(1).replace([np.inf,-np.inf],0)
-df_IncomeStatement["R&D Expenses TTM - YoY"] = df_IncomeStatement["R&D Expenses TTM"].pct_change(4).replace([np.inf,-np.inf],0)
-df_IncomeStatement["R&D Expenses TTM - 5Y CAGR"]  = ((df_IncomeStatement['R&D Expenses TTM'].pct_change(20)+1)**0.2)-1
-df_IncomeStatement["R&D Expenses TTM - 5Y CAGR"] = df_IncomeStatement["R&D Expenses TTM - 5Y CAGR"].replace([np.inf,-np.inf],0)
+df_IncomeStatement["R&D Expenses TTM - QoQ"] = df_IncomeStatement["R&D Expenses TTM"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["R&D Expenses TTM - YoY"] = df_IncomeStatement["R&D Expenses TTM"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["R&D Expenses TTM - 5Y CAGR"] = pow(df_IncomeStatement['R&D Expenses TTM'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1    
 df_IncomeStatement["R&D Percentage of Revenue"] = df_IncomeStatement["R&D Expenses TTM"]/df_IncomeStatement["Revenue TTM"]
-    
 
     # Net Income
-df_IncomeStatement["Net Income"] = df_IncomeStatement["Net Income"].replace("",0)
-df_IncomeStatement["Net Income"] = df_IncomeStatement["Net Income"].astype("float64")
-df_IncomeStatement["Net Income"] = df_IncomeStatement["Net Income"] * 1000000
-df_IncomeStatement["Net Income - QoQ"] = df_IncomeStatement["Net Income"].pct_change(1).replace([np.inf,-np.inf],0)
-df_IncomeStatement["Net Income - YoY"] = df_IncomeStatement["Net Income"].pct_change(4).replace([np.inf,-np.inf],0)
-df_IncomeStatement["Net Income TTM"] = df_IncomeStatement["Net Income"].rolling(4).sum() 
-df_IncomeStatement["Net Income TTM - QoQ"] = df_IncomeStatement["Net Income TTM"].pct_change(1).replace([np.inf,-np.inf],0)
-df_IncomeStatement["Net Income TTM - YoY"] = df_IncomeStatement["Net Income TTM"].pct_change(4).replace([np.inf,-np.inf],0)
-df_IncomeStatement["Net Income TTM - 5Y CAGR"]  = ((df_IncomeStatement['Net Income TTM'].pct_change(20)+1)**0.2)-1
-df_IncomeStatement["Net Income TTM - 5Y CAGR"] = df_IncomeStatement["Net Income TTM - 5Y CAGR"].replace([np.inf,-np.inf],0)
+df_IncomeStatement["Net Income"] = (pd.to_numeric(df_IncomeStatement["Net Income"], errors = "coerce").fillna(0).mul(1000000))
+df_IncomeStatement["Net Income - QoQ"] = df_IncomeStatement["Net Income"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["Net Income - YoY"] = df_IncomeStatement["Net Income"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["Net Income TTM"] = df_IncomeStatement["Net Income"].rolling(4).sum()
+df_IncomeStatement["Net Income TTM - QoQ"] = df_IncomeStatement["Net Income TTM"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["Net Income TTM - YoY"] = df_IncomeStatement["Net Income TTM"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["Net Income TTM - 5Y CAGR"] = pow(df_IncomeStatement['Net Income TTM'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1   
+
 
     # EBITDA
-df_IncomeStatement["EBITDA"] = df_IncomeStatement["EBITDA"].replace("",0)
-df_IncomeStatement["EBITDA"] = df_IncomeStatement["EBITDA"].astype("float64")
-df_IncomeStatement["EBITDA"] = df_IncomeStatement["EBITDA"] * 1000000
-df_IncomeStatement["EBITDA - QoQ"] = df_IncomeStatement["EBITDA"].pct_change(1).replace([np.inf,-np.inf],0)
-df_IncomeStatement["EBITDA - YoY"] = df_IncomeStatement["EBITDA"].pct_change(4).replace([np.inf,-np.inf],0)
-df_IncomeStatement["EBITDA TTM"] = df_IncomeStatement["EBITDA"].rolling(4).sum() 
-df_IncomeStatement["EBITDA TTM - QoQ"] = df_IncomeStatement["EBITDA TTM"].pct_change(1).replace([np.inf,-np.inf],0)
-df_IncomeStatement["EBITDA TTM - YoY"] = df_IncomeStatement["EBITDA TTM"].pct_change(4).replace([np.inf,-np.inf],0)
-df_IncomeStatement["EBITDA TTM - 5Y CAGR"]  = ((df_IncomeStatement['EBITDA TTM'].pct_change(20)+1)**0.2)-1   
-df_IncomeStatement["EBITDA TTM - 5Y CAGR"] = df_IncomeStatement["EBITDA TTM - 5Y CAGR"].replace([np.inf,-np.inf],0)
+df_IncomeStatement["EBITDA"] = (pd.to_numeric(df_IncomeStatement["EBITDA"], errors = "coerce").fillna(0).mul(1000000))
+df_IncomeStatement["EBITDA - QoQ"] = df_IncomeStatement["EBITDA"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["EBITDA - YoY"] = df_IncomeStatement["EBITDA"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["EBITDA TTM"] = df_IncomeStatement["EBITDA"].rolling(4).sum()
+df_IncomeStatement["EBITDA TTM - QoQ"] = df_IncomeStatement["EBITDA TTM"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["EBITDA TTM - YoY"] = df_IncomeStatement["EBITDA TTM"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["EBITDA TTM - 5Y CAGR"] = pow(df_IncomeStatement['EBITDA TTM'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
+    
 
     # Shares Outstanding
-df_IncomeStatement["Shares Outstanding"] = df_IncomeStatement["Shares Outstanding"].replace("",0) 
-df_IncomeStatement["Shares Outstanding"] = df_IncomeStatement["Shares Outstanding"].astype("float64")
-df_IncomeStatement["Shares Outstanding"] = df_IncomeStatement["Shares Outstanding"] * 1000000
-df_IncomeStatement["Shares Outstanding - QoQ"] = df_IncomeStatement["Shares Outstanding"].pct_change(1) .replace([np.inf,-np.inf],0)
-df_IncomeStatement["Shares Outstanding - YoY"] = df_IncomeStatement["Shares Outstanding"].pct_change(4).replace([np.inf,-np.inf],0) 
-df_IncomeStatement["Shares Outstanding - 5Y CAGR"] = ((df_IncomeStatement['Shares Outstanding'].pct_change(20)+1)**0.2)-1    
-df_IncomeStatement["Shares Outstanding - 5Y CAGR"] = df_IncomeStatement["Shares Outstanding - 5Y CAGR"].replace([np.inf,-np.inf],0)
+df_IncomeStatement["Shares Outstanding"] = (pd.to_numeric(df_IncomeStatement["Shares Outstanding"], errors = "coerce").fillna(0).mul(1000000))
+df_IncomeStatement["Shares Outstanding - QoQ"] = df_IncomeStatement["Shares Outstanding"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["Shares Outstanding - YoY"] = df_IncomeStatement["Shares Outstanding"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["Shares Outstanding - 5Y CAGR"] = pow(df_IncomeStatement['Shares Outstanding'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
+        
 
     # EPS
-df_IncomeStatement["EPS - Earnings Per Share"] = df_IncomeStatement["EPS - Earnings Per Share"].replace("",0)
-df_IncomeStatement["EPS - Earnings Per Share"] = df_IncomeStatement["EPS - Earnings Per Share"].astype("float64")
-df_IncomeStatement["EPS - QoQ"] = df_IncomeStatement["EPS - Earnings Per Share"].pct_change(1).replace([np.inf,-np.inf],0)
-df_IncomeStatement["EPS - YoY"] = df_IncomeStatement["EPS - Earnings Per Share"].pct_change(4).replace([np.inf,-np.inf],0)
-df_IncomeStatement["EPS TTM"] = df_IncomeStatement["EPS - Earnings Per Share"].rolling(4).sum() 
-df_IncomeStatement["EPS TTM - QoQ"] = df_IncomeStatement["EPS TTM"].pct_change(1).replace([np.inf,-np.inf],0)
-df_IncomeStatement["EPS TTM - YoY"] = df_IncomeStatement["EPS TTM"].pct_change(4).replace([np.inf,-np.inf],0)
-df_IncomeStatement["EPS TTM - 5Y CAGR"]  = ((df_IncomeStatement['EPS TTM'].pct_change(20)+1)**0.2)-1  
-df_IncomeStatement["EPS TTM - 5Y CAGR"] = df_IncomeStatement["EPS TTM - 5Y CAGR"].replace([np.inf,-np.inf],0)
+df_IncomeStatement["EPS - Earnings Per Share"] = (pd.to_numeric(df_IncomeStatement["EPS - Earnings Per Share"], errors = "coerce").fillna(0).mul(1000000))
+df_IncomeStatement["EPS - QoQ"] = df_IncomeStatement["EPS - Earnings Per Share"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["EPS - YoY"] = df_IncomeStatement["EPS - Earnings Per Share"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["EPS TTM"] = df_IncomeStatement["EPS - Earnings Per Share"].rolling(4).sum()
+df_IncomeStatement["EPS TTM - QoQ"] = df_IncomeStatement["EPS TTM"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["EPS TTM - YoY"] = df_IncomeStatement["EPS TTM"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["EPS TTM - 5Y CAGR"] = pow(df_IncomeStatement['EPS TTM'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1 
+
 
     # Operating Expenses
-df_IncomeStatement["Operating Expenses"] = df_IncomeStatement["Operating Expenses"].replace("",0)
-df_IncomeStatement["Operating Expenses"] = df_IncomeStatement["Operating Expenses"].astype("float64")
-df_IncomeStatement["Operating Expenses"] = df_IncomeStatement["Operating Expenses"] * 1000000
-df_IncomeStatement["Operating Expenses - QoQ"] = df_IncomeStatement["Operating Expenses"].pct_change(1).replace([np.inf,-np.inf],0)
-df_IncomeStatement["Operating Expenses - YoY"] = df_IncomeStatement["Operating Expenses"].pct_change(4).replace([np.inf,-np.inf],0)
-df_IncomeStatement["Operating Expenses TTM"] = df_IncomeStatement["Operating Expenses"].rolling(4).sum() 
-df_IncomeStatement["Operating Expenses TTM - QoQ"] = df_IncomeStatement["Operating Expenses TTM"].pct_change(1).replace([np.inf,-np.inf],0)
-df_IncomeStatement["Operating Expenses TTM - YoY"] = df_IncomeStatement["Operating Expenses TTM"].pct_change(4).replace([np.inf,-np.inf],0)
-df_IncomeStatement["Operating Expenses TTM - 5Y CAGR"]  = ((df_IncomeStatement['Operating Expenses TTM'].pct_change(20)+1)**0.2)-1   
-df_IncomeStatement["Operating Expenses TTM - 5Y CAGR"] = df_IncomeStatement["Operating Expenses TTM - 5Y CAGR"].replace([np.inf,-np.inf],0)
+df_IncomeStatement["Operating Expenses"] = (pd.to_numeric(df_IncomeStatement["Operating Expenses"], errors = "coerce").fillna(0).mul(1000000))
+df_IncomeStatement["Operating Expenses - QoQ"] = df_IncomeStatement["Operating Expenses"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["Operating Expenses - YoY"] = df_IncomeStatement["Operating Expenses"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["Operating Expenses TTM"] = df_IncomeStatement["Operating Expenses"].rolling(4).sum()
+df_IncomeStatement["Operating Expenses TTM - QoQ"] = df_IncomeStatement["Operating Expenses TTM"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["Operating Expenses TTM - YoY"] = df_IncomeStatement["Operating Expenses TTM"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_IncomeStatement["Operating Expenses TTM - 5Y CAGR"] = pow(df_IncomeStatement['Operating Expenses TTM'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1    
+
 
     # Revenue / Net Income
 df_IncomeStatement["Revenue / Net Income"] = df_IncomeStatement["Revenue TTM"]/df_IncomeStatement["Net Income TTM"]
@@ -292,60 +240,46 @@ df_BalanceSheet = df_BalanceSheet.rename(columns = {'index':'Date'})
 df_BalanceSheet = df_BalanceSheet.sort_values(by=["Date"])
 
     # Cash On Hand
-df_BalanceSheet["Cash On Hand"] = df_BalanceSheet["Cash On Hand"].replace("",0)
-df_BalanceSheet["Cash On Hand"] = df_BalanceSheet["Cash On Hand"].astype("float64")
-df_BalanceSheet["Cash On Hand"] = df_BalanceSheet["Cash On Hand"] * 1000000
-df_BalanceSheet["Cash On Hand - QoQ"] = df_BalanceSheet["Cash On Hand"].pct_change(1).replace([np.inf,-np.inf],0)
-df_BalanceSheet["Cash On Hand - YoY"] = df_BalanceSheet["Cash On Hand"].pct_change(4).replace([np.inf,-np.inf],0)
-df_BalanceSheet["Cash On Hand - 5Y CAGR"]  = ((df_BalanceSheet['Cash On Hand'].pct_change(20)+1)**0.2)-1   
-df_BalanceSheet["Cash On Hand - 5Y CAGR"] = df_BalanceSheet["Cash On Hand - 5Y CAGR"].replace([np.inf,-np.inf],0)
+df_BalanceSheet["Cash On Hand"] = (pd.to_numeric(df_BalanceSheet["Cash On Hand"], errors = "coerce").fillna(0).mul(1000000))
+df_BalanceSheet["Cash On Hand - QoQ"] = df_BalanceSheet["Cash On Hand"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_BalanceSheet["Cash On Hand - YoY"] = df_BalanceSheet["Cash On Hand"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_BalanceSheet["Cash On Hand - 5Y CAGR"] = pow(df_BalanceSheet['Cash On Hand'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
+
 
     # Total Current Assets
-df_BalanceSheet["Total Current Assets"] = df_BalanceSheet["Total Current Assets"].replace("",0)
-df_BalanceSheet["Total Current Assets"] = df_BalanceSheet["Total Current Assets"].astype("float64")
-df_BalanceSheet["Total Current Assets"] = df_BalanceSheet["Total Current Assets"] * 1000000
-df_BalanceSheet["Total Current Assets - QoQ"] = df_BalanceSheet["Total Current Assets"].pct_change(1).replace([np.inf,-np.inf],0)
-df_BalanceSheet["Total Current Assets - YoY"] = df_BalanceSheet["Total Current Assets"].pct_change(4).replace([np.inf,-np.inf],0)
-df_BalanceSheet["Total Current Assets - 5Y CAGR"]  = ((df_BalanceSheet['Total Current Assets'].pct_change(20)+1)**0.2)-1    
-df_BalanceSheet["Total Current Assets - 5Y CAGR"] = df_BalanceSheet["Total Current Assets - 5Y CAGR"].replace([np.inf,-np.inf],0)
-    
+df_BalanceSheet["Total Current Assets"] = (pd.to_numeric(df_BalanceSheet["Total Current Assets"], errors = "coerce").fillna(0).mul(1000000))
+df_BalanceSheet["Total Current Assets - QoQ"] = df_BalanceSheet["Total Current Assets"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_BalanceSheet["Total Current Assets - YoY"] = df_BalanceSheet["Total Current Assets"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_BalanceSheet["Total Current Assets - 5Y CAGR"] = pow(df_BalanceSheet['Total Current Assets'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
+
+
     # Total Current Liabilities
-df_BalanceSheet["Total Current Liabilities"] = df_BalanceSheet["Total Current Liabilities"].replace("",0)
-df_BalanceSheet["Total Current Liabilities"] = df_BalanceSheet["Total Current Liabilities"].astype("float64") *-1
-df_BalanceSheet["Total Current Liabilities"] = df_BalanceSheet["Total Current Liabilities"] * 1000000
-df_BalanceSheet["Total Current Liabilities - QoQ"] = df_BalanceSheet["Total Current Liabilities"].pct_change(1).replace([np.inf,-np.inf],0)
-df_BalanceSheet["Total Current Liabilities - YoY"] = df_BalanceSheet["Total Current Liabilities"].pct_change(4).replace([np.inf,-np.inf],0)
-df_BalanceSheet["Total Current Liabilities - 5Y CAGR"]  = ((df_BalanceSheet['Total Current Liabilities'].pct_change(20)+1)**0.2)-1    
-df_BalanceSheet["Total Current Liabilities - 5Y CAGR"] = df_BalanceSheet["Total Current Liabilities - 5Y CAGR"].replace([np.inf,-np.inf],0)
-  
+df_BalanceSheet["Total Current Liabilities"] = -(pd.to_numeric(df_BalanceSheet["Total Current Liabilities"], errors = "coerce").fillna(0).mul(1000000))
+df_BalanceSheet["Total Current Liabilities - QoQ"] = df_BalanceSheet["Total Current Liabilities"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_BalanceSheet["Total Current Liabilities - YoY"] = df_BalanceSheet["Total Current Liabilities"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_BalanceSheet["Total Current Liabilities - 5Y CAGR"] = pow(df_BalanceSheet['Total Current Liabilities'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
+
+ 
     # Total Liabilities
-df_BalanceSheet["Total Liabilities"] = df_BalanceSheet["Total Liabilities"].replace("",0)
-df_BalanceSheet["Total Liabilities"] = df_BalanceSheet["Total Liabilities"].astype("float64") *-1
-df_BalanceSheet["Total Liabilities"] = df_BalanceSheet["Total Liabilities"] * 1000000
-df_BalanceSheet["Total Liabilities - QoQ"] = df_BalanceSheet["Total Liabilities"].pct_change(1).replace([np.inf,-np.inf],0)
-df_BalanceSheet["Total Liabilities - YoY"] = df_BalanceSheet["Total Liabilities"].pct_change(4).replace([np.inf,-np.inf],0)
-df_BalanceSheet["Total Liabilities - 5Y CAGR"]  = ((df_BalanceSheet['Total Liabilities'].pct_change(20)+1)**0.2)-1    
-df_BalanceSheet["Total Liabilities - 5Y CAGR"] = df_BalanceSheet["Total Liabilities - 5Y CAGR"].replace([np.inf,-np.inf],0)
+df_BalanceSheet["Total Liabilities"] = -(pd.to_numeric(df_BalanceSheet["Total Liabilities"], errors = "coerce").fillna(0).mul(1000000))
+df_BalanceSheet["Total Liabilities - QoQ"] = df_BalanceSheet["Total Liabilities"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_BalanceSheet["Total Liabilities - YoY"] = df_BalanceSheet["Total Liabilities"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_BalanceSheet["Total Liabilities - 5Y CAGR"] = pow(df_BalanceSheet['Total Liabilities'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
 
-    
+  
     # Shareholder Equity
-df_BalanceSheet["Share Holder Equity"] = df_BalanceSheet["Share Holder Equity"].replace("",0)
-df_BalanceSheet["Share Holder Equity"] = df_BalanceSheet["Share Holder Equity"].astype("float64")
-df_BalanceSheet["Share Holder Equity"] = df_BalanceSheet["Share Holder Equity"] * 1000000
-df_BalanceSheet["Share Holder Equity - QoQ"] = df_BalanceSheet["Share Holder Equity"].pct_change(1).replace([np.inf,-np.inf],0)
-df_BalanceSheet["Share Holder Equity - YoY"] = df_BalanceSheet["Share Holder Equity"].pct_change(4).replace([np.inf,-np.inf],0)
-df_BalanceSheet["Share Holder Equity - 5Y CAGR"]  = ((df_BalanceSheet['Share Holder Equity'].pct_change(20)+1)**0.2)-1    
-df_BalanceSheet["Share Holder Equity - 5Y CAGR"] = df_BalanceSheet["Share Holder Equity - 5Y CAGR"].replace([np.inf,-np.inf],0)
+df_BalanceSheet["Share Holder Equity"] = (pd.to_numeric(df_BalanceSheet["Share Holder Equity"], errors = "coerce").fillna(0).mul(1000000))
+df_BalanceSheet["Share Holder Equity - QoQ"] = df_BalanceSheet["Share Holder Equity"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_BalanceSheet["Share Holder Equity - YoY"] = df_BalanceSheet["Share Holder Equity"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_BalanceSheet["Share Holder Equity - 5Y CAGR"] = pow(df_BalanceSheet['Share Holder Equity'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
 
 
     # Shareholder Equity
-df_BalanceSheet["Long Term Debt"] = df_BalanceSheet["Long Term Debt"].replace("",0).replace([np.inf,-np.inf],0).replace("inf",0)
-df_BalanceSheet["Long Term Debt"] = df_BalanceSheet["Long Term Debt"].astype("float64") *-1
-df_BalanceSheet["Long Term Debt"] = df_BalanceSheet["Long Term Debt"] * 1000000
-df_BalanceSheet["Long Term Debt - QoQ"] = df_BalanceSheet["Long Term Debt"].pct_change(1).replace([np.inf,-np.inf],0)
-df_BalanceSheet["Long Term Debt - YoY"] = df_BalanceSheet["Long Term Debt"].pct_change(4).replace([np.inf,-np.inf],0)
-df_BalanceSheet["Long Term Debt - 5Y CAGR"]  = ((df_BalanceSheet['Long Term Debt'].pct_change(20)+1)**0.2)-1
-df_BalanceSheet["Long Term Debt - 5Y CAGR"] = df_BalanceSheet["Long Term Debt - 5Y CAGR"].replace([np.inf,-np.inf],0)
+df_BalanceSheet["Long Term Debt"] = -(pd.to_numeric(df_BalanceSheet["Long Term Debt"], errors = "coerce").fillna(0).mul(1000000))
+df_BalanceSheet["Long Term Debt - QoQ"] = df_BalanceSheet["Long Term Debt"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_BalanceSheet["Long Term Debt - YoY"] = df_BalanceSheet["Long Term Debt"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_BalanceSheet["Long Term Debt - 5Y CAGR"] = pow(df_BalanceSheet['Long Term Debt'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
+
 
 #%% Cash Flow Statement
 html = requests.get(cashflowstatement)
@@ -381,111 +315,82 @@ df_CashFlowStatement = df_CashFlowStatement.rename(columns = {'index':'Date'})
 df_CashFlowStatement = df_CashFlowStatement.sort_values(by=["Date"])
 
     # Cash Flow From Operating Activities
-df_CashFlowStatement["Cash Flow From Operating Activities"] = df_CashFlowStatement["Cash Flow From Operating Activities"].replace("",0)
-df_CashFlowStatement["Operating Cash Flow"] = df_CashFlowStatement["Cash Flow From Operating Activities"].astype("float64")
-df_CashFlowStatement["Operating Cash Flow"] = df_CashFlowStatement["Operating Cash Flow"] * 1_000_000
-df_CashFlowStatement["Operating Cash Flow - QoQ"] = df_CashFlowStatement["Operating Cash Flow"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Operating Cash Flow - YoY"] = df_CashFlowStatement["Operating Cash Flow"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Operating Cash Flow TTM"] = df_CashFlowStatement["Operating Cash Flow"].rolling(4).sum() 
-df_CashFlowStatement["Operating Cash Flow TTM - QoQ"] = df_CashFlowStatement["Operating Cash Flow TTM"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Operating Cash Flow TTM - YoY"] = df_CashFlowStatement["Operating Cash Flow TTM"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Operating Cash Flow TTM - 5Y CAGR"]  = ((df_CashFlowStatement['Operating Cash Flow TTM'].pct_change(20)+1)**0.2)-1    
-df_CashFlowStatement["Operating Cash Flow TTM - 5Y CAGR"] = df_CashFlowStatement["Operating Cash Flow TTM - 5Y CAGR"].replace([np.inf,-np.inf],0) 
+df_CashFlowStatement["Operating Cash Flow"] = (pd.to_numeric(df_CashFlowStatement["Cash Flow From Operating Activities"], errors = "coerce").fillna(0).mul(1000000))
+df_CashFlowStatement["Operating Cash Flow - QoQ"] = df_CashFlowStatement["Operating Cash Flow"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Operating Cash Flow - YoY"] = df_CashFlowStatement["Operating Cash Flow"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Operating Cash Flow TTM"] = df_CashFlowStatement["Operating Cash Flow"].rolling(4).sum()
+df_CashFlowStatement["Operating Cash Flow TTM - QoQ"] = df_CashFlowStatement["Operating Cash Flow TTM"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Operating Cash Flow TTM - YoY"] = df_CashFlowStatement["Operating Cash Flow TTM"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Operating Cash Flow TTM - 5Y CAGR"] = pow(df_CashFlowStatement['Operating Cash Flow TTM'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
+
     
     # Cash Flow From Investing Activities
-df_CashFlowStatement["Cash Flow From Investing Activities"] = df_CashFlowStatement["Cash Flow From Investing Activities"].replace("",0)
-df_CashFlowStatement["Investing Cash Flow"] = df_CashFlowStatement["Cash Flow From Investing Activities"].astype("float64")
-df_CashFlowStatement["Investing Cash Flow"] = df_CashFlowStatement["Investing Cash Flow"] * 1_000_000
-df_CashFlowStatement["Investing Cash Flow - QoQ"] = df_CashFlowStatement["Investing Cash Flow"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Investing Cash Flow - YoY"] = df_CashFlowStatement["Investing Cash Flow"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Investing Cash Flow TTM"] = df_CashFlowStatement["Investing Cash Flow"].rolling(4).sum() 
-df_CashFlowStatement["Investing Cash Flow TTM - QoQ"] = df_CashFlowStatement["Investing Cash Flow TTM"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Investing Cash Flow TTM - YoY"] = df_CashFlowStatement["Investing Cash Flow TTM"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Investing Cash Flow TTM - 5Y CAGR"]  = ((df_CashFlowStatement['Investing Cash Flow TTM'].pct_change(20)+1)**0.2)-1        
-df_CashFlowStatement["Investing Cash Flow TTM - 5Y CAGR"] = df_CashFlowStatement["Investing Cash Flow TTM - 5Y CAGR"].replace([np.inf,-np.inf],0) 
+df_CashFlowStatement["Investing Cash Flow"] = (pd.to_numeric(df_CashFlowStatement["Cash Flow From Investing Activities"], errors = "coerce").fillna(0).mul(1000000))
+df_CashFlowStatement["Investing Cash Flow - QoQ"] = df_CashFlowStatement["Investing Cash Flow"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Investing Cash Flow - YoY"] = df_CashFlowStatement["Investing Cash Flow"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Investing Cash Flow TTM"] = df_CashFlowStatement["Investing Cash Flow"].rolling(4).sum()
+df_CashFlowStatement["Investing Cash Flow TTM - QoQ"] = df_CashFlowStatement["Investing Cash Flow TTM"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Investing Cash Flow TTM - YoY"] = df_CashFlowStatement["Investing Cash Flow TTM"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Investing Cash Flow TTM - 5Y CAGR"] = pow(df_CashFlowStatement['Investing Cash Flow TTM'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
+
     
     # Cash Flow From Financing Activities
-df_CashFlowStatement["Cash Flow From Financial Activities"] = df_CashFlowStatement["Cash Flow From Financial Activities"].replace("",0)
-df_CashFlowStatement["Financing Cash Flow"] = df_CashFlowStatement["Cash Flow From Financial Activities"].astype("float64")
-df_CashFlowStatement["Financing Cash Flow"] = df_CashFlowStatement["Financing Cash Flow"] * 1_000_000
-df_CashFlowStatement["Financing Cash Flow - QoQ"] = df_CashFlowStatement["Financing Cash Flow"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Financing Cash Flow - YoY"] = df_CashFlowStatement["Financing Cash Flow"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Financing Cash Flow TTM"] = df_CashFlowStatement["Financing Cash Flow"].rolling(4).sum() 
-df_CashFlowStatement["Financing Cash Flow TTM - QoQ"] = df_CashFlowStatement["Financing Cash Flow TTM"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Financing Cash Flow TTM - YoY"] = df_CashFlowStatement["Financing Cash Flow TTM"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Financing Cash Flow TTM - 5Y CAGR"]  = ((df_CashFlowStatement['Financing Cash Flow TTM'].pct_change(20)+1)**0.2)-1            
-df_CashFlowStatement["Financing Cash Flow TTM - 5Y CAGR"] = df_CashFlowStatement["Financing Cash Flow TTM - 5Y CAGR"].replace([np.inf,-np.inf],0) 
-    
-    #  Net Cash Flow (To Be Removed upon calculation of FREE CASH FLOW)
-df_CashFlowStatement["Net Cash Flow"] = df_CashFlowStatement["Net Cash Flow"].replace("",0)
-df_CashFlowStatement["Net Cash Flow"] = df_CashFlowStatement["Net Cash Flow"].astype("float64")
-df_CashFlowStatement["Net Cash Flow"] = df_CashFlowStatement["Net Cash Flow"] * 1_000_000
-df_CashFlowStatement["Net Cash Flow - QoQ"] = df_CashFlowStatement["Net Cash Flow"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Net Cash Flow - YoY"] = df_CashFlowStatement["Net Cash Flow"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Net Cash Flow TTM"] = df_CashFlowStatement["Net Cash Flow"].rolling(4).sum() 
-df_CashFlowStatement["Net Cash Flow TTM - QoQ"] = df_CashFlowStatement["Net Cash Flow TTM"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Net Cash Flow TTM - YoY"] = df_CashFlowStatement["Net Cash Flow TTM"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Net Cash Flow TTM - 5Y CAGR"]  = ((df_CashFlowStatement['Net Cash Flow TTM'].pct_change(20)+1)**0.2)-1         
-df_CashFlowStatement["Net Cash Flow TTM - 5Y CAGR"] = df_CashFlowStatement["Net Cash Flow TTM - 5Y CAGR"].replace([np.inf,-np.inf],0) 
-  
+df_CashFlowStatement["Financing Cash Flow"] = (pd.to_numeric(df_CashFlowStatement["Cash Flow From Financial Activities"], errors = "coerce").fillna(0).mul(1000000))
+df_CashFlowStatement["Financing Cash Flow - QoQ"] = df_CashFlowStatement["Financing Cash Flow"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Financing Cash Flow - YoY"] = df_CashFlowStatement["Financing Cash Flow"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Financing Cash Flow TTM"] = df_CashFlowStatement["Financing Cash Flow"].rolling(4).sum()
+df_CashFlowStatement["Financing Cash Flow TTM - QoQ"] = df_CashFlowStatement["Financing Cash Flow TTM"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Financing Cash Flow TTM - YoY"] = df_CashFlowStatement["Financing Cash Flow TTM"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Financing Cash Flow TTM - 5Y CAGR"] = pow(df_CashFlowStatement['Financing Cash Flow TTM'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
+
+
     # Capital Expenditure
-df_CashFlowStatement["Capital Expenditure"] = df_CashFlowStatement["Total Depreciation And Amortization - Cash Flow"].replace("",0).astype("float64") + df_CashFlowStatement["Net Change In Property, Plant, And Equipment"].replace("",0).astype("float64") 
-df_CashFlowStatement["Capital Expenditure"] = df_CashFlowStatement["Capital Expenditure"] * 1_000_000
-df_CashFlowStatement["Capital Expenditure - QoQ"] = df_CashFlowStatement["Capital Expenditure"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Capital Expenditure - YoY"] = df_CashFlowStatement["Capital Expenditure"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Capital Expenditure TTM"] = df_CashFlowStatement["Capital Expenditure"].rolling(4).sum() 
-df_CashFlowStatement["Capital Expenditure TTM - QoQ"] = df_CashFlowStatement["Capital Expenditure TTM"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Capital Expenditure TTM - YoY"] = df_CashFlowStatement["Capital Expenditure TTM"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Capital Expenditure TTM - 5Y CAGR"]  = ((df_CashFlowStatement['Capital Expenditure TTM'].pct_change(20)+1)**0.2)-1         
-df_CashFlowStatement["Capital Expenditure TTM - 5Y CAGR"] = df_CashFlowStatement["Capital Expenditure TTM - 5Y CAGR"].replace([np.inf,-np.inf],0)
+df_CashFlowStatement["Capital Expenditure"] = df_CashFlowStatement["Total Depreciation And Amortization - Cash Flow"].fillna(0).astype("float64") + df_CashFlowStatement["Net Change In Property, Plant, And Equipment"].fillna(0).astype("float64") 
+df_CashFlowStatement["Capital Expenditure - QoQ"] = df_CashFlowStatement["Capital Expenditure"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Capital Expenditure - YoY"] = df_CashFlowStatement["Capital Expenditure"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Capital Expenditure TTM"] = df_CashFlowStatement["Capital Expenditure"].rolling(4).sum()
+df_CashFlowStatement["Capital Expenditure TTM - QoQ"] = df_CashFlowStatement["Capital Expenditure TTM"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Capital Expenditure TTM - YoY"] = df_CashFlowStatement["Capital Expenditure TTM"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Capital Expenditure TTM - 5Y CAGR"] = pow(df_CashFlowStatement['Capital Expenditure TTM'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
+
 
     # Free Cash Flow
 df_CashFlowStatement["Free Cash Flow"] = df_CashFlowStatement["Operating Cash Flow"] - df_CashFlowStatement["Capital Expenditure"]
-# df_CashFlowStatement["Free Cash Flow"] = df_CashFlowStatement["Free Cash Flow"].astype("float64")
-# df_CashFlowStatement["Free Cash Flow"] = df_CashFlowStatement["Free Cash Flow"] * 1_000_000
-df_CashFlowStatement["Free Cash Flow - QoQ"] = df_CashFlowStatement["Free Cash Flow"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Free Cash Flow - YoY"] = df_CashFlowStatement["Free Cash Flow"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Free Cash Flow TTM"] = df_CashFlowStatement["Free Cash Flow"].rolling(4).sum() 
-df_CashFlowStatement["Free Cash Flow TTM - QoQ"] = df_CashFlowStatement["Free Cash Flow TTM"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Free Cash Flow TTM - YoY"] = df_CashFlowStatement["Free Cash Flow TTM"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Free Cash Flow TTM - 5Y CAGR"]  = ((df_CashFlowStatement['Free Cash Flow TTM'].pct_change(20)+1)**0.2)-1         
-df_CashFlowStatement["Free Cash Flow TTM - 5Y CAGR"] = df_CashFlowStatement["Free Cash Flow TTM - 5Y CAGR"].replace([np.inf,-np.inf],0)
+df_CashFlowStatement["Free Cash Flow - QoQ"] = df_CashFlowStatement["Free Cash Flow"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Free Cash Flow - YoY"] = df_CashFlowStatement["Free Cash Flow"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Free Cash Flow TTM"] = df_CashFlowStatement["Free Cash Flow"].rolling(4).sum()
+df_CashFlowStatement["Free Cash Flow TTM - QoQ"] = df_CashFlowStatement["Free Cash Flow TTM"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Free Cash Flow TTM - YoY"] = df_CashFlowStatement["Free Cash Flow TTM"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Free Cash Flow TTM - 5Y CAGR"] = pow(df_CashFlowStatement['Free Cash Flow TTM'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
     
+
     # Stock-Based Compensation
-df_CashFlowStatement["Stock-Based Compensation"] = df_CashFlowStatement["Stock-Based Compensation"].replace("",0)
-df_CashFlowStatement["Stock-Based Compensation"] = df_CashFlowStatement["Stock-Based Compensation"].astype("float64")
-df_CashFlowStatement["Stock-Based Compensation"] = df_CashFlowStatement["Stock-Based Compensation"] * 1_000_000
-df_CashFlowStatement["Stock-Based Compensation - QoQ"] = df_CashFlowStatement["Stock-Based Compensation"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Stock-Based Compensation - YoY"] = df_CashFlowStatement["Stock-Based Compensation"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Stock-Based Compensation TTM"] = df_CashFlowStatement["Stock-Based Compensation"].rolling(4).sum() 
-df_CashFlowStatement["Stock-Based Compensation TTM - QoQ"] = df_CashFlowStatement["Stock-Based Compensation TTM"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Stock-Based Compensation TTM - YoY"] = df_CashFlowStatement["Stock-Based Compensation TTM"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Stock-Based Compensation TTM - 5Y CAGR"]  = ((df_CashFlowStatement['Stock-Based Compensation TTM'].pct_change(20)+1)**0.2)-1        
-df_CashFlowStatement["Stock-Based Compensation TTM - 5Y CAGR"] = df_CashFlowStatement["Stock-Based Compensation TTM - 5Y CAGR"].replace([np.inf,-np.inf],0) 
-      
+df_CashFlowStatement["Stock-Based Compensation"] = (pd.to_numeric(df_CashFlowStatement["Stock-Based Compensation"], errors = "coerce").fillna(0).mul(1000000))
+df_CashFlowStatement["Stock-Based Compensation - QoQ"] = df_CashFlowStatement["Stock-Based Compensation"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Stock-Based Compensation - YoY"] = df_CashFlowStatement["Stock-Based Compensation"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Stock-Based Compensation TTM"] = df_CashFlowStatement["Stock-Based Compensation"].rolling(4).sum()
+df_CashFlowStatement["Stock-Based Compensation TTM - QoQ"] = df_CashFlowStatement["Stock-Based Compensation TTM"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Stock-Based Compensation TTM - YoY"] = df_CashFlowStatement["Stock-Based Compensation TTM"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Stock-Based Compensation TTM - 5Y CAGR"] = pow(df_CashFlowStatement['Stock-Based Compensation TTM'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
+    
+  
     # Common Stock Dividends Paid
-df_CashFlowStatement["Common Stock Dividends Paid"] = df_CashFlowStatement["Common Stock Dividends Paid"].replace("",0)
-df_CashFlowStatement["Common Stock Dividends Paid"] = df_CashFlowStatement["Common Stock Dividends Paid"].astype("float64")
-df_CashFlowStatement["Common Stock Dividends Paid"] = df_CashFlowStatement["Common Stock Dividends Paid"] * 1_000_000
-df_CashFlowStatement["Common Stock Dividends Paid - QoQ"] = df_CashFlowStatement["Common Stock Dividends Paid"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Common Stock Dividends Paid - YoY"] = df_CashFlowStatement["Common Stock Dividends Paid"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Common Stock Dividends Paid TTM"] = df_CashFlowStatement["Common Stock Dividends Paid"].rolling(4).sum() 
-df_CashFlowStatement["Common Stock Dividends Paid TTM - QoQ"] = df_CashFlowStatement["Common Stock Dividends Paid TTM"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Common Stock Dividends Paid TTM - YoY"] = df_CashFlowStatement["Common Stock Dividends Paid TTM"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Common Stock Dividends Paid TTM - 5Y CAGR"] = ((df_CashFlowStatement['Common Stock Dividends Paid TTM'].pct_change(20)+1)**0.2)-1     
-df_CashFlowStatement["Common Stock Dividends Paid TTM - 5Y CAGR"] = df_CashFlowStatement["Common Stock Dividends Paid TTM - 5Y CAGR"].replace([np.inf,-np.inf],0)    
+df_CashFlowStatement["Common Stock Dividends Paid"] = (pd.to_numeric(df_CashFlowStatement["Cash Flow From Financial Activities"], errors = "coerce").fillna(0).mul(1000000))
+df_CashFlowStatement["Common Stock Dividends Paid - QoQ"] = df_CashFlowStatement["Common Stock Dividends Paid"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Common Stock Dividends Paid - YoY"] = df_CashFlowStatement["Common Stock Dividends Paid"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Common Stock Dividends Paid TTM"] = df_CashFlowStatement["Common Stock Dividends Paid"].rolling(4).sum()
+df_CashFlowStatement["Common Stock Dividends Paid TTM - QoQ"] = df_CashFlowStatement["Common Stock Dividends Paid TTM"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Common Stock Dividends Paid TTM - YoY"] = df_CashFlowStatement["Common Stock Dividends Paid TTM"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Common Stock Dividends Paid TTM - 5Y CAGR"] = pow(df_CashFlowStatement['Common Stock Dividends Paid TTM'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1
 
     # Share Buybacks
-df_CashFlowStatement["Share Buybacks"] = df_CashFlowStatement["Net Common Equity Issued/Repurchased"].replace("",0)
-df_CashFlowStatement["Share Buybacks"] = df_CashFlowStatement["Share Buybacks"].astype("float64")
-df_CashFlowStatement["Share Buybacks"] = df_CashFlowStatement["Share Buybacks"] * 1_000_000
-df_CashFlowStatement["Share Buybacks - QoQ"] = df_CashFlowStatement["Share Buybacks"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Share Buybacks - YoY"] = df_CashFlowStatement["Share Buybacks"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Share Buybacks TTM"] = df_CashFlowStatement["Share Buybacks"].rolling(4).sum() 
-df_CashFlowStatement["Share Buybacks TTM - QoQ"] = df_CashFlowStatement["Share Buybacks TTM"].pct_change(1).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Share Buybacks TTM - YoY"] = df_CashFlowStatement["Share Buybacks TTM"].pct_change(4).replace([np.inf,-np.inf],0)
-df_CashFlowStatement["Share Buybacks TTM - 5Y CAGR"] = ((df_CashFlowStatement['Share Buybacks TTM'].pct_change(20)+1)**0.2)-1     
-df_CashFlowStatement["Share Buybacks TTM - 5Y CAGR"] = df_CashFlowStatement["Share Buybacks TTM - 5Y CAGR"].replace([np.inf,-np.inf],0)        
+df_CashFlowStatement["Share Buybacks"] = (pd.to_numeric(df_CashFlowStatement["Net Common Equity Issued/Repurchased"], errors = "coerce").fillna(0).mul(1000000))
+df_CashFlowStatement["Share Buybacks - QoQ"] = df_CashFlowStatement["Share Buybacks"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Share Buybacks - YoY"] = df_CashFlowStatement["Share Buybacks"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Share Buybacks TTM"] = df_CashFlowStatement["Share Buybacks"].rolling(4).sum()
+df_CashFlowStatement["Share Buybacks TTM - QoQ"] = df_CashFlowStatement["Share Buybacks TTM"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Share Buybacks TTM - YoY"] = df_CashFlowStatement["Share Buybacks TTM"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_CashFlowStatement["Share Buybacks TTM - 5Y CAGR"] = pow(df_CashFlowStatement['Share Buybacks TTM'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1  
       
 #%% Key Ratios
 html = requests.get(keyratios)
@@ -520,30 +425,23 @@ df_KeyRatios = df_KeyRatios.rename(columns = {'index':'Date'})
 # Calculated Values
 df_KeyRatios = df_KeyRatios.sort_values(by=["Date"])
 
-    # Gross Margin
-df_KeyRatios["Gross Margin"] = df_KeyRatios["Gross Margin"].replace("",0).astype("float64") / 100
-df_KeyRatios["Gross Margin"] = df_KeyRatios["Gross Margin"].rolling(4).mean() 
-df_KeyRatios["Gross Margin - QoQ"] = df_KeyRatios["Gross Margin"].pct_change(1).replace([np.inf,-np.inf],0)
-df_KeyRatios["Gross Margin - YoY"] = df_KeyRatios["Gross Margin"].pct_change(4).replace([np.inf,-np.inf],0)
-df_KeyRatios["Gross Margin - 5Y CAGR"] = ((df_KeyRatios['Gross Margin'].pct_change(20)+1)**0.2)-1     
-df_KeyRatios["Gross Margin - 5Y CAGR"] = df_KeyRatios["Gross Margin - 5Y CAGR"].replace([np.inf,-np.inf],0)        
+    # Gross Margin 
+df_KeyRatios["Gross Margin"] = (pd.to_numeric(df_KeyRatios["Gross Margin"], errors = "coerce").fillna(0).div(100))
+df_KeyRatios["Gross Margin - QoQ"] = df_KeyRatios["Gross Margin"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_KeyRatios["Gross Margin - YoY"] = df_KeyRatios["Gross Margin"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_KeyRatios["Gross Margin - 5Y CAGR"] = pow(df_KeyRatios['Gross Margin'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1     
       
-    # Operating Margin
-df_KeyRatios["Operating Margin"] = df_KeyRatios["Operating Margin"].replace("",0).astype("float64") / 100
-df_KeyRatios["Operating Margin"] = df_KeyRatios["Operating Margin"].rolling(4).mean() 
-df_KeyRatios["Operating Margin - QoQ"] = df_KeyRatios["Operating Margin"].pct_change(1).replace([np.inf,-np.inf],0)
-df_KeyRatios["Operating Margin - YoY"] = df_KeyRatios["Operating Margin"].pct_change(4).replace([np.inf,-np.inf],0)
-df_KeyRatios["Operating Margin - 5Y CAGR"] = ((df_KeyRatios['Operating Margin'].pct_change(20)+1)**0.2)-1     
-df_KeyRatios["Operating Margin - 5Y CAGR"] = df_KeyRatios["Operating Margin - 5Y CAGR"].replace([np.inf,-np.inf],0)        
+    # Operating Margin     
+df_KeyRatios["Operating Margin"] = (pd.to_numeric(df_KeyRatios["Operating Margin"], errors = "coerce").fillna(0).div(100))
+df_KeyRatios["Operating Margin - QoQ"] = df_KeyRatios["Operating Margin"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_KeyRatios["Operating Margin - YoY"] = df_KeyRatios["Operating Margin"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_KeyRatios["Operating Margin - 5Y CAGR"] = pow(df_KeyRatios['Operating Margin'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1    
   
-    # ROI
-df_KeyRatios["ROI"] = df_KeyRatios["ROI - Return On Investment"].replace("",0).astype("float64") / 100
-df_KeyRatios["ROI"] = df_KeyRatios["ROI"].rolling(4).mean() 
-df_KeyRatios["ROI - QoQ"] = df_KeyRatios["ROI"].pct_change(1).replace([np.inf,-np.inf],0)
-df_KeyRatios["ROI - YoY"] = df_KeyRatios["ROI"].pct_change(4).replace([np.inf,-np.inf],0)
-df_KeyRatios["ROI - 5Y CAGR"] = ((df_KeyRatios['ROI'].pct_change(20)+1)**0.2)-1     
-df_KeyRatios["ROI - 5Y CAGR"] = df_KeyRatios["ROI - 5Y CAGR"].replace([np.inf,-np.inf],0)        
-
+    # ROI    
+df_KeyRatios["ROI"] = (pd.to_numeric(df_KeyRatios["ROI - Return On Investment"], errors = "coerce").fillna(0).div(100))
+df_KeyRatios["ROI - QoQ"] = df_KeyRatios["ROI"].pct_change(1).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_KeyRatios["ROI - YoY"] = df_KeyRatios["ROI"].pct_change(4).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x)
+df_KeyRatios["ROI - 5Y CAGR"] = pow(df_KeyRatios['ROI'].pct_change(20).fillna(0).apply(lambda x: 0 if not np.isfinite(x) else x) + 1, 0.2) - 1    
 
 #%% Price Data
 
@@ -610,16 +508,6 @@ df_fcf_bad = df_boundarytest[df_boundarytest["FCF / Market Capitalization"] < df
 prod_fcf_good = df_fcf_good["Daily Change Norm"].prod()
 prod_fcf_bad = df_fcf_bad["Daily Change Norm"].prod()
 
-print("The cumulative return when FCF is above the boundary is :")
-print(prod_fcf_good-1)
-print("\n")
-print("The cumulative return when FCF is below the boundary is :")
-print(prod_fcf_bad-1)
-
-
-
-
-
 
 #%%
 
@@ -683,6 +571,3 @@ with pd.ExcelWriter('C:/Users/eirik/OneDrive/Documents/Cloudkit/PowerBI Resource
     
 # End Execution
 print("Execution time:  %s seconds" % round((time.time() - start_time),2))
-
-
-
